@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920">
+      <rect width="1080" height="1920" fill="#f5f5f5"/>
+      <!-- Phone bezels -->
+      <rect x="0" y="0" width="1080" height="1920" fill="none" stroke="#333" stroke-width="20"/>
+      <!-- Status bar -->
+      <rect x="0" y="0" width="1080" height="60" fill="#1E88E5"/>
+      <text x="540" y="40" font-family="Arial" font-size="24" fill="white" text-anchor="middle" font-weight="bold">9:41</text>
+      <!-- App header -->
+      <rect x="0" y="60" width="1080" height="80" fill="#1E88E5"/>
+      <text x="540" y="115" font-family="Arial" font-size="40" fill="white" text-anchor="middle" font-weight="bold">Site Spy</text>
+      <!-- Content area -->
+      <rect x="30" y="160" width="1020" height="200" fill="white" stroke="#ddd" stroke-width="2" rx="8"/>
+      <text x="50" y="200" font-family="Arial" font-size="28" font-weight="bold" fill="#333">Target URL</text>
+      <rect x="50" y="220" width="1000" height="60" fill="#f0f0f0" rx="4"/>
+      <text x="70" y="260" font-family="Arial" font-size="24" fill="#999">Enter website URL...</text>
+      <!-- Features list -->
+      <rect x="30" y="380" width="1020" height="150" fill="white" stroke="#ddd" stroke-width="2" rx="8"/>
+      <text x="50" y="420" font-family="Arial" font-size="28" font-weight="bold" fill="#333">Features</text>
+      <text x="70" y="470" font-family="Arial" font-size="24" fill="#666">✓ Web scraping</text>
+      <text x="70" y="510" font-family="Arial" font-size="24" fill="#666">✓ Data extraction</text>
+      <!-- Bottom text -->
+      <text x="540" y="1800" font-family="Arial" font-size="32" fill="#666" text-anchor="middle" font-weight="bold">Enter any website URL to begin</text>
+    </svg>
