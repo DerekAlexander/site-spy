@@ -1,0 +1,187 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack-100b9e646d9c912e.js"/><script src="/_next/static/chunks/fd9d1056-9f91b5e418130764.js" async=""></script><script src="/_next/static/chunks/117-373243894bd7fac6.js" async=""></script><script src="/_next/static/chunks/main-app-4f6a736fbd084d78.js" async=""></script><script src="/_next/static/chunks/app/page-5b191a280d0e571b.js" async=""></script><title>Site Spy - Competitor Monitoring</title><meta name="description" content="Track your competitors website changes, downtime, and more"/><script src="/_next/static/chunks/polyfills-42372ed130431b0a.js" noModule=""></script></head><body><div class="app"><header><h1>🕵️ Site Spy</h1><p>Track your local competitors</p></header><main><section class="add-competitor"><h2>Add Competitor</h2><div class="input-group"><input type="text" placeholder="Enter website URL..." value=""/><button>Add</button></div><p class="info-text">💡 Note: Content tracking works best when deployed on a backend server (CORS may block browser requests)</p></section><section class="check-all"><button class="check-all-btn" disabled="">🔍 Check All Sites</button><button class="settings-btn" title="Alert Settings">⚙️</button></section><div class="settings-summary-collapsed"><span>📋 <!-- -->Every hour • Alerts: ↓ Down, ↑ Up</span></div><section class="competitors-list"><h2>Your Competitors (<!-- -->0<!-- -->)</h2><p class="empty">No competitors yet. Add one above!</p></section></main><style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, Roboto, sans-serif; background: #f5f5f5; color: #333; }
+        .app { min-height: 100vh; }
+        header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 24px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        header h1 { font-size: 28px; margin-bottom: 4px; font-weight: 700; }
+        header p { color: #aaa; font-size: 14px; }
+        main { padding: 20px; max-width: 600px; margin: 0 auto; padding-bottom: 40px; }
+        section { margin-bottom: 30px; }
+        h2 { font-size: 18px; margin-bottom: 12px; color: #333; font-weight: 600; }
+        
+        /* Input Group */
+        .input-group { display: flex; gap: 10px; margin-bottom: 8px; }
+        .info-text { font-size: 12px; color: #666; margin-top: 8px; font-style: italic; }
+        input { 
+          flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input:focus { outline: none; border-color: #4a90d9; box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.1); }
+        
+        /* Buttons */
+        button { 
+          padding: 12px 20px; background: #1a1a2e; color: white; border: none; border-radius: 8px; 
+          font-size: 16px; cursor: pointer; font-weight: 600;
+          transition: all 0.2s ease;
+        }
+        button:hover:not(:disabled) { background: #252a4a; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26, 26, 46, 0.2); }
+        button:active:not(:disabled) { transform: translateY(0); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .empty { color: #888; text-align: center; padding: 40px 20px; background: white; border-radius: 12px; }
+        
+        /* Check All Section */
+        .check-all { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .check-all-btn { background: linear-gradient(135deg, #4a90d9, #2e5fa3); flex: 1; box-shadow: 0 2px 8px rgba(74, 144, 217, 0.2); }
+        .check-all-btn:hover:not(:disabled) { box-shadow: 0 4px 16px rgba(74, 144, 217, 0.3); }
+        .last-check { color: #888; font-size: 12px; white-space: nowrap; }
+        
+        /* Competitor List */
+        ul { list-style: none; }
+        .competitor-card { 
+          background: white; padding: 16px; border-radius: 12px; margin-bottom: 12px; 
+          display: flex; justify-content: space-between; align-items: center; 
+          box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+          border-left: 4px solid #4a90d9;
+          transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .competitor-card:hover { 
+          box-shadow: 0 4px 12px rgba(0,0,0,0.12); 
+          transform: translateY(-1px);
+        }
+        .comp-info { flex: 1; }
+        .comp-info h3 { font-size: 16px; margin-bottom: 4px; font-weight: 600; }
+        .comp-info a { color: #0066cc; font-size: 14px; text-decoration: none; font-weight: 500; }
+        .comp-info a:hover { text-decoration: underline; }
+        .comp-info .meta { display: flex; gap: 12px; margin-top: 8px; font-size: 12px; color: #888; flex-wrap: wrap; align-items: center; }
+        .change-indicator { margin-left: 6px; font-size: 14px; animation: pulse 1.5s infinite; }
+        .changes-count { background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 12px; font-weight: 600; }
+        .status-badge { 
+          display: inline-block; padding: 4px 10px; border-radius: 20px; text-transform: capitalize; 
+          font-weight: 600; font-size: 11px;
+        }
+        .status-badge[data-status=&quot;alive&quot;] { background: #e8f5e9; color: #2e7d32; }
+        .status-badge[data-status=&quot;down&quot;] { background: #ffebee; color: #c62828; }
+        .status-badge[data-status=&quot;pending&quot;] { background: #fff3e0; color: #f57c00; }
+        
+        /* Action Buttons */
+        .comp-actions { display: flex; gap: 8px; }
+        .comp-actions .check { 
+          background: #4a90d9; padding: 8px 12px; font-size: 14px; font-weight: 600;
+          border-radius: 6px;
+        }
+        .comp-actions .check:hover:not(:disabled) { background: #2e5fa3; }
+        .comp-actions .show-changes {
+          background: #ffa500; padding: 8px 12px; font-size: 14px; font-weight: 600;
+          border-radius: 6px; white-space: nowrap;
+        }
+        .comp-actions .show-changes:hover { background: #ff8c00; }
+        .comp-actions .remove { 
+          background: #ff4444; padding: 8px 12px; font-size: 14px; width: 36px; 
+          border-radius: 6px; font-weight: 600;
+        }
+        .comp-actions .remove:hover:not(:disabled) { background: #cc0000; }
+        
+        /* Changes Panel */
+        .changes-panel {
+          background: #fffaf0; border-radius: 0 0 12px 12px; border: 1px solid #ffd699; border-top: none;
+          padding: 16px; margin-bottom: 12px; margin-top: -4px; border-left: 4px solid #ffa500;
+        }
+        .changes-panel h4 { margin-bottom: 12px; color: #ff7f00; font-size: 14px; }
+        .changes-timeline { display: flex; flex-direction: column; gap: 12px; }
+        .change-entry { 
+          background: white; border-radius: 8px; padding: 12px; 
+          border-left: 3px solid #ffa500; font-size: 13px;
+        }
+        .change-time { 
+          font-weight: 600; color: #ff7f00; font-size: 12px; margin-bottom: 6px; 
+          text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .change-details { color: #444; line-height: 1.5; }
+        .change-details p { margin: 4px 0; }
+        .snapshot-details { 
+          margin-top: 8px; padding-top: 8px; border-top: 1px solid #ffe4cc; 
+          cursor: pointer; color: #ff7f00; font-weight: 500; user-select: none;
+        }
+        .snapshot-details:hover { color: #ff5500; }
+        .snapshot-info { 
+          margin-top: 8px; background: #fff9f0; padding: 10px; border-radius: 6px; 
+          font-family: monospace; font-size: 11px; color: #555;
+        }
+        .snapshot-info p { margin: 4px 0; }
+        .snapshot-info .hash-display { color: #999; font-size: 10px; }
+        
+        /* Alert Settings */
+        .settings-btn { 
+          background: #666; padding: 12px 16px; border-radius: 8px; font-weight: 600;
+        }
+        .settings-btn:hover { background: #555; }
+        
+        .alert-settings { 
+          background: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; 
+          box-shadow: 0 4px 12px rgba(0,0,0,0.12); border-top: 4px solid #4a90d9;
+        }
+        .alert-settings h2 { margin-bottom: 20px; }
+        
+        .setting-group { margin-bottom: 20px; }
+        .setting-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #333; }
+        .alert-settings select { 
+          width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; 
+          font-size: 14px; margin-bottom: 12px; background: white;
+          transition: border-color 0.2s;
+        }
+        .alert-settings select:focus { outline: none; border-color: #4a90d9; }
+        
+        .checkbox-group { margin-bottom: 12px; }
+        .checkbox-label { 
+          display: flex; align-items: center; gap: 8px; font-weight: 400 !important; 
+          cursor: pointer; padding: 8px; border-radius: 6px;
+          transition: background 0.2s;
+        }
+        .checkbox-label:hover { background: #f5f5f5; }
+        .checkbox-label input[type=&quot;checkbox&quot;] { width: 18px; height: 18px; accent-color: #4a90d9; cursor: pointer; }
+        
+        .notify-input { 
+          width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; 
+          font-size: 14px; margin-bottom: 8px;
+          transition: border-color 0.2s;
+        }
+        .notify-input:focus { outline: none; border-color: #4a90d9; }
+        
+        .settings-summary { 
+          background: #f0f7ff; padding: 14px; border-radius: 8px; margin-bottom: 16px; 
+          font-size: 13px; color: #1a567e; border-left: 3px solid #4a90d9; line-height: 1.5;
+        }
+        
+        .settings-summary-collapsed { 
+          background: #e8f4fd; padding: 12px 14px; border-radius: 8px; margin-bottom: 20px; 
+          font-size: 13px; color: #4a90d9; border-left: 3px solid #4a90d9;
+        }
+        
+        .saved-msg { color: #2ecc71; margin-top: 8px; font-weight: 600; animation: fadeIn 0.3s ease; }
+        
+        .close-settings { background: #4a90d9; width: 100%; font-weight: 600; }
+        .close-settings:hover { background: #2e5fa3; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulse { 
+          0%, 100% { opacity: 1; } 
+          50% { opacity: 0.6; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 500px) {
+          main { padding: 12px; padding-bottom: 30px; }
+          header { padding: 16px; }
+          header h1 { font-size: 22px; }
+          .competitor-card { flex-direction: column; align-items: flex-start; }
+          .comp-actions { width: 100%; margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+          .comp-actions .check { flex: 1; min-width: 80px; }
+          .comp-actions .show-changes { flex: 1; min-width: 80px; }
+          .comp-actions .remove { width: 36px; flex-shrink: 0; }
+          .input-group { flex-direction: column; }
+          input { width: 100%; }
+          .changes-panel { margin-left: -16px; margin-right: -16px; border-radius: 0 0 12px 12px; }
+        }
+      </style></div><script src="/_next/static/chunks/webpack-100b9e646d9c912e.js" async=""></script><script>(self.__next_f=self.__next_f||[]).push([0]);self.__next_f.push([2,null])</script><script>self.__next_f.push([1,"1:I[2846,[],\"\"]\n3:I[9107,[],\"ClientPageRoot\"]\n4:I[434,[\"931\",\"static/chunks/app/page-5b191a280d0e571b.js\"],\"default\",1]\n5:I[4707,[],\"\"]\n6:I[6423,[],\"\"]\n8:I[1060,[],\"\"]\n9:[]\n0:[\"$\",\"$L1\",null,{\"buildId\":\"9uvCRjmOg_X9CQnzoxQxW\",\"assetPrefix\":\"\",\"urlParts\":[\"\",\"\"],\"initialTree\":[\"\",{\"children\":[\"__PAGE__\",{}]},\"$undefined\",\"$undefined\",true],\"initialSeedData\":[\"\",{\"children\":[\"__PAGE__\",{},[[\"$L2\",[\"$\",\"$L3\",null,{\"props\":{\"params\":{},\"searchParams\":{}},\"Component\":\"$4\"}],null],null],null]},[[null,[\"$\",\"html\",null,{\"lang\":\"en\",\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"meta\",null,{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",null,{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]}],[\"$\",\"body\",null,{\"children\":[\"$\",\"$L5\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L6\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":\"404\"}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be foun"])</script><script>self.__next_f.push([1,"d.\"}]}]]}]}]],\"notFoundStyles\":[]}]}]]}]],null],null],\"couldBeIntercepted\":false,\"initialHead\":[null,\"$L7\"],\"globalErrorComponent\":\"$8\",\"missingSlots\":\"$W9\"}]\n"])</script><script>self.__next_f.push([1,"7:[[\"$\",\"meta\",\"0\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}],[\"$\",\"meta\",\"1\",{\"charSet\":\"utf-8\"}],[\"$\",\"title\",\"2\",{\"children\":\"Site Spy - Competitor Monitoring\"}],[\"$\",\"meta\",\"3\",{\"name\":\"description\",\"content\":\"Track your competitors website changes, downtime, and more\"}]]\n2:null\n"])</script></body></html>

@@ -1,0 +1,9 @@
+{
+  "appId": "com.sitespy.app",
+  "appName": "Site Spy",
+  "webDir": ".next",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}
