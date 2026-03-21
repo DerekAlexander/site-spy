@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack-100b9e646d9c912e.js"/><script src="/_next/static/chunks/fd9d1056-9f91b5e418130764.js" async=""></script><script src="/_next/static/chunks/117-373243894bd7fac6.js" async=""></script><script src="/_next/static/chunks/main-app-4f6a736fbd084d78.js" async=""></script><script src="/_next/static/chunks/app/page-5b191a280d0e571b.js" async=""></script><title>Site Spy - Competitor Monitoring</title><meta name="description" content="Track your competitors website changes, downtime, and more"/><script src="/_next/static/chunks/polyfills-42372ed130431b0a.js" noModule=""></script></head><body><div class="app"><header><h1>🕵️ Site Spy</h1><p>Track your local competitors</p></header><main><section class="add-competitor"><h2>Add Competitor</h2><div class="input-group"><input type="text" placeholder="Enter website URL..." value=""/><button>Add</button></div><p class="info-text">💡 Note: Content tracking works best when deployed on a backend server (CORS may block browser requests)</p></section><section class="check-all"><button class="check-all-btn" disabled="">🔍 Check All Sites</button><button class="settings-btn" title="Alert Settings">⚙️</button></section><div class="settings-summary-collapsed"><span>📋 <!-- -->Every hour • Alerts: ↓ Down, ↑ Up</span></div><section class="competitors-list"><h2>Your Competitors (<!-- -->0<!-- -->)</h2><p class="empty">No competitors yet. Add one above!</p></section></main><style>
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack-100b9e646d9c912e.js"/><script src="/_next/static/chunks/fd9d1056-9f91b5e418130764.js" async=""></script><script src="/_next/static/chunks/117-373243894bd7fac6.js" async=""></script><script src="/_next/static/chunks/main-app-4f6a736fbd084d78.js" async=""></script><script src="/_next/static/chunks/app/page-4c45176789a8096a.js" async=""></script><title>Site Spy - Competitor Monitoring</title><meta name="description" content="Track your competitors website changes, downtime, and more"/><script src="/_next/static/chunks/polyfills-42372ed130431b0a.js" noModule=""></script></head><body><div class="app"><header><h1>🕵️ Site Spy</h1><p>Track your local competitors</p></header><main><section class="add-competitor"><h2>Add Competitor</h2><div class="input-group"><input type="text" placeholder="Enter website URL..." value=""/><button>Add</button></div><p class="info-text">💡 Note: Content tracking works best when deployed on a backend server (CORS may block browser requests)</p></section><section class="check-all"><button class="check-all-btn" disabled="">🔍 Check All Sites</button><button class="settings-btn" title="Alert Settings">⚙️</button></section><div class="settings-summary-collapsed"><span>📋 <!-- -->Every hour • Alerts: ↓ Down, ↑ Up</span></div><section class="competitors-list"><h2>Your Competitors (<!-- -->0<!-- -->)</h2><p class="empty">No competitors yet. Add one above!</p></section><section class="changelog-section"><button class="changelog-toggle">▶<!-- --> 📋 Activity Log (<!-- -->0<!-- --> changes)</button></section></main><style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, Roboto, sans-serif; background: #f5f5f5; color: #333; }
         .app { min-height: 100vh; }
@@ -93,12 +93,107 @@
           background: white; border-radius: 8px; padding: 12px; 
           border-left: 3px solid #ffa500; font-size: 13px;
         }
+        .change-time-header {
+          display: flex; justify-content: space-between; align-items: center;
+          margin-bottom: 8px; gap: 12px;
+        }
         .change-time { 
-          font-weight: 600; color: #ff7f00; font-size: 12px; margin-bottom: 6px; 
+          font-weight: 600; color: #ff7f00; font-size: 12px; 
           text-transform: uppercase; letter-spacing: 0.5px;
         }
-        .change-details { color: #444; line-height: 1.5; }
-        .change-details p { margin: 4px 0; }
+        .expand-detail-btn {
+          background: #ff7f00; color: white; border: none; border-radius: 4px;
+          padding: 4px 8px; font-size: 11px; font-weight: 600; cursor: pointer;
+          transition: background 0.2s;
+        }
+        .expand-detail-btn:hover { background: #ff5500; }
+        
+        .change-summary {
+          display: flex; align-items: center; gap: 12px; margin-top: 8px;
+          padding: 8px; background: #f9f9f9; border-radius: 4px;
+        }
+        .change-count {
+          background: #fff3cd; color: #856404; padding: 2px 6px;
+          border-radius: 4px; font-weight: 600; font-size: 11px; white-space: nowrap;
+        }
+        .change-preview {
+          color: #666; font-size: 12px; flex: 1; overflow: hidden;
+          text-overflow: ellipsis; white-space: nowrap;
+        }
+        
+        /* Expanded Details View */
+        .expanded-details-view {
+          margin-top: 12px; padding-top: 12px; border-top: 1px solid #ffe4cc;
+          display: flex; flex-direction: column; gap: 10px;
+        }
+        .no-diffs { 
+          color: #888; font-size: 12px; text-align: center; padding: 12px 0;
+          font-style: italic;
+        }
+        
+        /* Diff Viewer Styles */
+        .diff-viewer {
+          background: #f0f8ff; border: 1px solid #d0e4f5; border-radius: 6px;
+          overflow: hidden; margin-bottom: 8px;
+        }
+        .diff-header {
+          background: linear-gradient(90deg, #e8f4fd 0%, #f5f9ff 100%);
+          padding: 10px 12px; display: flex; gap: 8px; align-items: center;
+          border-left: 4px solid #4a90d9; font-size: 12px; font-weight: 600;
+          border-bottom: 1px solid #d0e4f5;
+        }
+        .diff-element {
+          color: #1a567e; font-weight: 700; flex-shrink: 0;
+        }
+        .diff-type-badge {
+          background: #e3f2fd; color: #1565c0; padding: 2px 6px;
+          border-radius: 3px; font-size: 10px; font-weight: 600;
+          text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .diff-severity {
+          margin-left: auto; font-weight: 600; font-size: 11px;
+          padding: 2px 6px; border-radius: 3px;
+        }
+        
+        .diff-content {
+          display: flex; align-items: stretch; gap: 0; padding: 0;
+          font-size: 12px;
+        }
+        .diff-side {
+          flex: 1; padding: 12px; display: flex; flex-direction: column;
+          border-right: 1px solid #d0e4f5;
+        }
+        .diff-side:last-child { border-right: none; }
+        .diff-side.old { background: #fff0f0; }
+        .diff-side.new { background: #f0fff0; }
+        
+        .diff-side-label {
+          font-weight: 600; font-size: 11px; color: #666; margin-bottom: 6px;
+          text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .diff-value {
+          font-family: &#x27;Courier New&#x27;, monospace; font-size: 11px;
+          line-height: 1.4; color: #333; word-wrap: break-word;
+          padding: 8px; border-radius: 4px; background: rgba(255,255,255,0.7);
+        }
+        .diff-value.old-value { 
+          border-left: 2px solid #ff6b6b; color: #d32f2f;
+        }
+        .diff-value.new-value { 
+          border-left: 2px solid #51cf66; color: #2e7d32;
+        }
+        
+        .diff-arrow {
+          display: flex; align-items: center; padding: 0 6px;
+          color: #999; font-weight: bold; font-size: 14px;
+          flex-shrink: 0;
+        }
+        
+        .diff-summary {
+          padding: 12px; color: #666; font-size: 12px;
+          line-height: 1.5; background: #f5f5f5;
+        }
+        
         .snapshot-details { 
           margin-top: 8px; padding-top: 8px; border-top: 1px solid #ffe4cc; 
           cursor: pointer; color: #ff7f00; font-weight: 500; user-select: none;
@@ -170,6 +265,331 @@
           50% { opacity: 0.6; }
         }
         
+        /* Changelog Panel Styles */
+        .changelog-section { 
+          margin-top: 30px; margin-bottom: 20px;
+          position: sticky; bottom: 0; background: white;
+          border-top: 2px solid #ddd; box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .changelog-toggle {
+          width: 100%; background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+          color: white; border: none; border-radius: 0; padding: 16px;
+          font-size: 16px; font-weight: 600; cursor: pointer;
+          display: flex; align-items: center; gap: 8px;
+          transition: background 0.2s, box-shadow 0.2s;
+          text-align: left;
+        }
+        
+        .changelog-toggle:hover { 
+          background: linear-gradient(135deg, #1a252f 0%, #23323f 100%);
+          box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .changelog-panel {
+          background: #f8f9fa; border-top: 2px solid #34495e;
+          max-height: 500px; display: flex; flex-direction: column;
+          animation: slideUp 0.3s ease;
+        }
+        
+        .changelog-header {
+          padding: 16px; background: white; border-bottom: 1px solid #ddd;
+          flex-shrink: 0;
+        }
+        
+        .changelog-header h3 {
+          margin: 0 0 4px 0; font-size: 16px; color: #2c3e50;
+        }
+        
+        .changelog-description {
+          margin: 0 0 12px 0; font-size: 12px; color: #888;
+          font-style: italic;
+        }
+        
+        .changelog-filters {
+          display: flex; align-items: center; gap: 12px;
+        }
+        
+        .changelog-filters label {
+          font-weight: 600; font-size: 12px; color: #333;
+          white-space: nowrap;
+        }
+        
+        .changelog-filter-select {
+          flex: 1; padding: 8px; border: 1px solid #ddd;
+          border-radius: 6px; font-size: 12px; background: white;
+          cursor: pointer; transition: border-color 0.2s;
+        }
+        
+        .changelog-filter-select:focus {
+          outline: none; border-color: #34495e;
+        }
+        
+        .changelog-content {
+          flex: 1; overflow-y: auto; padding: 0;
+          background: white;
+        }
+        
+        .changelog-entries {
+          display: flex; flex-direction: column; gap: 0;
+        }
+        
+        .changelog-entry {
+          padding: 12px 16px; border-bottom: 1px solid #eee;
+          transition: background 0.2s;
+          border-left: 4px solid #ddd;
+        }
+        
+        .changelog-entry:hover {
+          background: #f5f5f5;
+        }
+        
+        .changelog-entry-header {
+          display: flex; gap: 12px; align-items: center;
+          margin-bottom: 8px; flex-wrap: wrap;
+          font-size: 12px; font-weight: 600;
+        }
+        
+        .changelog-time {
+          color: #888; text-transform: uppercase;
+          letter-spacing: 0.5px; min-width: 80px;
+        }
+        
+        .changelog-competitor {
+          background: #e3f2fd; color: #1565c0;
+          padding: 2px 8px; border-radius: 4px;
+          white-space: nowrap;
+        }
+        
+        .changelog-severity {
+          padding: 2px 8px; border-radius: 4px; font-weight: 700;
+          font-size: 11px;
+        }
+        
+        .changelog-severity[data-severity=&quot;high&quot;] {
+          background: #ffebee; color: #c62828;
+        }
+        
+        .changelog-severity[data-severity=&quot;medium&quot;] {
+          background: #fff3e0; color: #f57c00;
+        }
+        
+        .changelog-severity[data-severity=&quot;low&quot;] {
+          background: #e8f5e9; color: #2e7d32;
+        }
+        
+        .changelog-similarity {
+          background: #f5f5f5; color: #666;
+          padding: 2px 8px; border-radius: 4px;
+          font-family: monospace;
+        }
+        
+        .changelog-entry-body {
+          font-size: 12px; color: #555;
+        }
+        
+        .changelog-url {
+          margin-bottom: 6px;
+        }
+        
+        .changelog-url code,
+        .changelog-values code {
+          background: #f5f5f5; padding: 2px 6px;
+          border-radius: 3px; font-family: &#x27;Courier New&#x27;, monospace;
+          color: #d32f2f; font-size: 11px;
+          word-break: break-all;
+        }
+        
+        .changelog-change {
+          margin-bottom: 6px; line-height: 1.4;
+        }
+        
+        .change-detail {
+          color: #333; font-weight: 500;
+        }
+        
+        .changelog-values {
+          display: flex; gap: 12px; margin-top: 6px;
+          flex-wrap: wrap;
+        }
+        
+        .old-val, .new-val {
+          flex: 1; min-width: 200px;
+          padding: 6px; border-radius: 3px;
+          font-size: 11px;
+        }
+        
+        .old-val {
+          background: #fff0f0; color: #d32f2f;
+        }
+        
+        .new-val {
+          background: #f0fff0; color: #2e7d32;
+        }
+        
+        .changelog-empty {
+          padding: 40px 20px; text-align: center;
+          color: #999; font-style: italic;
+        }
+        
+        .changelog-footer {
+          padding: 12px 16px; background: #f5f5f5;
+          border-top: 1px solid #ddd; display: flex;
+          justify-content: space-between; align-items: center;
+          flex-shrink: 0;
+        }
+        
+        .changelog-export {
+          background: #34495e; color: white; border: none;
+          border-radius: 6px; padding: 8px 14px;
+          font-size: 12px; font-weight: 600; cursor: pointer;
+          transition: background 0.2s;
+        }
+        
+        .changelog-export:hover {
+          background: #2c3e50;
+        }
+        
+        .changelog-info {
+          font-size: 11px; color: #888;
+        }
+
+        /* Screenshot Styles */
+        .screenshot-btn {
+          background: #8b6aff; padding: 10px 14px; border-radius: 8px; 
+          border: none; color: white; font-weight: 600; cursor: pointer;
+          transition: background 0.2s;
+        }
+        .screenshot-btn:hover { background: #7055e8; }
+        .screenshot-btn:disabled { background: #ccc; cursor: not-allowed; opacity: 0.6; }
+
+        .show-screenshots {
+          background: #16a34a; padding: 10px 14px; border-radius: 8px;
+          border: none; color: white; font-weight: 600; cursor: pointer;
+          transition: background 0.2s;
+        }
+        .show-screenshots:hover { background: #15803d; }
+
+        .screenshots-panel {
+          background: white; padding: 16px; margin-top: 12px;
+          border: 1px solid #e5e7eb; border-radius: 8px;
+          border-left: 4px solid #16a34a;
+        }
+
+        .screenshots-panel h4 {
+          margin: 0 0 16px 0; font-size: 14px; color: #1f2937;
+          display: flex; align-items: center; gap: 8px;
+        }
+
+        .screenshots-panel h5 {
+          margin: 16px 0 12px 0; font-size: 12px; color: #666;
+          text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        .screenshots-container {
+          display: flex; flex-direction: column; gap: 24px;
+        }
+
+        .screenshots-comparison {
+          border: 1px solid #d1d5db; border-radius: 8px;
+          padding: 12px; background: #f9fafb;
+        }
+
+        .comparison-slider {
+          position: relative; width: 100%; margin-top: 12px;
+          display: flex; align-items: center; overflow: hidden;
+          border-radius: 6px; background: #f5f5f5;
+          height: 300px;
+        }
+
+        .comparison-img {
+          position: absolute; top: 0; left: 0;
+          width: 100%; height: 100%; object-fit: contain;
+        }
+
+        .comparison-img.before {
+          z-index: 1; object-fit: cover;
+        }
+
+        .comparison-img.after {
+          z-index: 2; opacity: 1; object-fit: cover;
+        }
+
+        .slider-divider {
+          position: absolute; left: 50%; top: 0;
+          width: 4px; height: 100%;
+          background: #2563eb; cursor: col-resize;
+          z-index: 3; display: flex; align-items: center;
+          justify-content: center; user-select: none;
+        }
+
+        .slider-handle {
+          background: white; color: #2563eb; padding: 4px 6px;
+          border-radius: 4px; font-weight: bold; font-size: 12px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+          position: absolute; transform: translateX(-50%);
+        }
+
+        .comparison-info {
+          margin-top: 8px; font-size: 12px; color: #666;
+          text-align: center;
+        }
+
+        .screenshot-gallery {
+          display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 12px;
+        }
+
+        .screenshot-item {
+          border: 1px solid #d1d5db; border-radius: 8px;
+          overflow: hidden; display: flex; flex-direction: column;
+          transition: box-shadow 0.2s;
+        }
+
+        .screenshot-item:hover {
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .screenshot-thumb {
+          width: 100%; height: 150px; object-fit: cover;
+          background: #f5f5f5; cursor: pointer;
+        }
+
+        .screenshot-meta {
+          padding: 8px 10px; background: #f9fafb;
+          font-size: 11px; color: #666; display: flex;
+          flex-direction: column; gap: 4px;
+        }
+
+        .screenshot-time {
+          font-weight: 600; color: #1f2937;
+        }
+
+        .screenshot-size, .screenshot-res {
+          color: #999; font-family: monospace;
+        }
+
+        .screenshot-actions {
+          padding: 8px 10px; background: #f3f4f6;
+          display: flex; gap: 8px; justify-content: center;
+          border-top: 1px solid #e5e7eb;
+        }
+
+        .screenshot-download {
+          background: transparent; border: none; font-size: 16px;
+          cursor: pointer; padding: 4px 8px; border-radius: 4px;
+          transition: background 0.2s;
+        }
+
+        .screenshot-download:hover {
+          background: #d1d5db;
+        }
+        
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
         /* Responsive */
         @media (max-width: 500px) {
           main { padding: 12px; padding-bottom: 30px; }
@@ -183,5 +603,13 @@
           .input-group { flex-direction: column; }
           input { width: 100%; }
           .changes-panel { margin-left: -16px; margin-right: -16px; border-radius: 0 0 12px 12px; }
+          
+          .changelog-section {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            max-height: 50vh; z-index: 1000;
+          }
+          .changelog-panel { max-height: calc(50vh - 50px); }
+          .changelog-entry-header { flex-direction: column; align-items: flex-start; gap: 6px; }
+          main { padding-bottom: 60px; }
         }
-      </style></div><script src="/_next/static/chunks/webpack-100b9e646d9c912e.js" async=""></script><script>(self.__next_f=self.__next_f||[]).push([0]);self.__next_f.push([2,null])</script><script>self.__next_f.push([1,"1:I[2846,[],\"\"]\n3:I[9107,[],\"ClientPageRoot\"]\n4:I[434,[\"931\",\"static/chunks/app/page-5b191a280d0e571b.js\"],\"default\",1]\n5:I[4707,[],\"\"]\n6:I[6423,[],\"\"]\n8:I[1060,[],\"\"]\n9:[]\n0:[\"$\",\"$L1\",null,{\"buildId\":\"9uvCRjmOg_X9CQnzoxQxW\",\"assetPrefix\":\"\",\"urlParts\":[\"\",\"\"],\"initialTree\":[\"\",{\"children\":[\"__PAGE__\",{}]},\"$undefined\",\"$undefined\",true],\"initialSeedData\":[\"\",{\"children\":[\"__PAGE__\",{},[[\"$L2\",[\"$\",\"$L3\",null,{\"props\":{\"params\":{},\"searchParams\":{}},\"Component\":\"$4\"}],null],null],null]},[[null,[\"$\",\"html\",null,{\"lang\":\"en\",\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"meta\",null,{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",null,{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]}],[\"$\",\"body\",null,{\"children\":[\"$\",\"$L5\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L6\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":\"404\"}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be foun"])</script><script>self.__next_f.push([1,"d.\"}]}]]}]}]],\"notFoundStyles\":[]}]}]]}]],null],null],\"couldBeIntercepted\":false,\"initialHead\":[null,\"$L7\"],\"globalErrorComponent\":\"$8\",\"missingSlots\":\"$W9\"}]\n"])</script><script>self.__next_f.push([1,"7:[[\"$\",\"meta\",\"0\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}],[\"$\",\"meta\",\"1\",{\"charSet\":\"utf-8\"}],[\"$\",\"title\",\"2\",{\"children\":\"Site Spy - Competitor Monitoring\"}],[\"$\",\"meta\",\"3\",{\"name\":\"description\",\"content\":\"Track your competitors website changes, downtime, and more\"}]]\n2:null\n"])</script></body></html>
+      </style></div><script src="/_next/static/chunks/webpack-100b9e646d9c912e.js" async=""></script><script>(self.__next_f=self.__next_f||[]).push([0]);self.__next_f.push([2,null])</script><script>self.__next_f.push([1,"1:I[2846,[],\"\"]\n3:I[9107,[],\"ClientPageRoot\"]\n4:I[434,[\"931\",\"static/chunks/app/page-4c45176789a8096a.js\"],\"default\",1]\n5:I[4707,[],\"\"]\n6:I[6423,[],\"\"]\n8:I[1060,[],\"\"]\n9:[]\n0:[\"$\",\"$L1\",null,{\"buildId\":\"tmAJ8O35lwGyRLz0jH29a\",\"assetPrefix\":\"\",\"urlParts\":[\"\",\"\"],\"initialTree\":[\"\",{\"children\":[\"__PAGE__\",{}]},\"$undefined\",\"$undefined\",true],\"initialSeedData\":[\"\",{\"children\":[\"__PAGE__\",{},[[\"$L2\",[\"$\",\"$L3\",null,{\"props\":{\"params\":{},\"searchParams\":{}},\"Component\":\"$4\"}],null],null],null]},[[null,[\"$\",\"html\",null,{\"lang\":\"en\",\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"meta\",null,{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",null,{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]}],[\"$\",\"body\",null,{\"children\":[\"$\",\"$L5\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L6\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":\"404\"}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be foun"])</script><script>self.__next_f.push([1,"d.\"}]}]]}]}]],\"notFoundStyles\":[]}]}]]}]],null],null],\"couldBeIntercepted\":false,\"initialHead\":[null,\"$L7\"],\"globalErrorComponent\":\"$8\",\"missingSlots\":\"$W9\"}]\n"])</script><script>self.__next_f.push([1,"7:[[\"$\",\"meta\",\"0\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}],[\"$\",\"meta\",\"1\",{\"charSet\":\"utf-8\"}],[\"$\",\"title\",\"2\",{\"children\":\"Site Spy - Competitor Monitoring\"}],[\"$\",\"meta\",\"3\",{\"name\":\"description\",\"content\":\"Track your competitors website changes, downtime, and more\"}]]\n2:null\n"])</script></body></html>

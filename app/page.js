@@ -70,6 +70,7 @@ export default function Home() {
   const [newUrl, setNewUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(null); // ID of competitor being checked
+  const [capturingScreenshot, setCapturingScreenshot] = useState(null); // ID of competitor with screenshot being captured
   const [lastCheckAll, setLastCheckAll] = useState(null);
   const [alertSettings, setAlertSettings] = useState(DEFAULT_ALERT_SETTINGS);
   const [showSettings, setShowSettings] = useState(false);
@@ -78,6 +79,7 @@ export default function Home() {
   const [expandedChangeDetail, setExpandedChangeDetail] = useState(null); // Track expanded change detail view
   const [showChangelog, setShowChangelog] = useState(false); // Show/hide changelog panel
   const [changelogFilter, setChangelogFilter] = useState('all'); // Filter: 'all', 'high', 'medium', 'low'
+  const [expandedScreenshots, setExpandedScreenshots] = useState(null); // Track which competitor's screenshots are expanded
 
   // Load competitors and alert settings from localStorage on mount
   useEffect(() => {
@@ -684,6 +686,91 @@ export default function Home() {
     return allEntries.filter(entry => entry.severity === changelogFilter);
   };
 
+  // Format file size in bytes to readable format
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  // Capture screenshot of a competitor URL
+  const captureScreenshot = async (competitor) => {
+    setCapturingScreenshot(competitor.id);
+    try {
+      const response = await fetch('/api/screenshot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: competitor.url })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Screenshot API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to capture screenshot');
+      }
+
+      // Update competitor with screenshot history
+      const now = new Date().toISOString();
+      const updated = competitors.map(c => {
+        if (c.id === competitor.id) {
+          const screenshotHistory = c.screenshots || [];
+          
+          // Keep only last 3 screenshots to save localStorage space
+          screenshotHistory.push({
+            timestamp: now,
+            screenshot: data.screenshot,
+            size: data.size,
+            width: data.width,
+            height: data.height
+          });
+          
+          if (screenshotHistory.length > 3) {
+            screenshotHistory.shift();
+          }
+
+          return {
+            ...c,
+            screenshots: screenshotHistory,
+            lastScreenshot: now
+          };
+        }
+        return c;
+      });
+
+      saveCompetitors(updated);
+    } catch (error) {
+      console.error('Screenshot capture error:', error);
+      alert(`Failed to capture screenshot: ${error.message}`);
+    }
+    setCapturingScreenshot(null);
+  };
+
+  // Download screenshot as PNG file
+  const downloadScreenshot = (screenshot, competitorName) => {
+    const link = document.createElement('a');
+    link.href = screenshot;
+    link.download = `${competitorName}-screenshot-${new Date().toISOString().split('T')[0]}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Calculate visual differences between two screenshots (simple comparison)
+  const compareScreenshots = (old, newImg) => {
+    if (!old || !newImg) return null;
+    
+    return {
+      oldTimestamp: old.timestamp,
+      newTimestamp: newImg.timestamp,
+      timeDiff: new Date(newImg.timestamp) - new Date(old.timestamp)
+    };
+  };
+
   return (
     <div className="app">
       <header>
@@ -854,12 +941,29 @@ export default function Home() {
                       >
                         {checking === comp.id ? '...' : 'Check'}
                       </button>
+                      <button 
+                        className="screenshot-btn" 
+                        onClick={() => captureScreenshot(comp)}
+                        disabled={capturingScreenshot === comp.id}
+                        title="Capture screenshot"
+                      >
+                        {capturingScreenshot === comp.id ? '⏳' : '📸'}
+                      </button>
                       {comp.changes && comp.changes.length > 0 && (
                         <button 
                           className="show-changes"
                           onClick={() => setExpandedChanges(expandedChanges === comp.id ? null : comp.id)}
                         >
                           {expandedChanges === comp.id ? '▼' : '▶'} {comp.changes.length}
+                        </button>
+                      )}
+                      {comp.screenshots && comp.screenshots.length > 0 && (
+                        <button 
+                          className="show-screenshots"
+                          onClick={() => setExpandedScreenshots(expandedScreenshots === comp.id ? null : comp.id)}
+                          title="Show screenshots"
+                        >
+                          {expandedScreenshots === comp.id ? '▼' : '▶'} {comp.screenshots.length}
                         </button>
                       )}
                       <button className="remove" onClick={() => removeCompetitor(comp.id)}>×</button>
@@ -924,6 +1028,54 @@ export default function Home() {
                             )}
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Screenshots Panel */}
+                  {expandedScreenshots === comp.id && comp.screenshots && comp.screenshots.length > 0 && (
+                    <div className="screenshots-panel">
+                      <h4>📸 Screenshot History</h4>
+                      <div className="screenshots-container">
+                        {comp.screenshots.length > 1 && (
+                          <div className="screenshots-comparison">
+                            <h5>Visual Comparison (Slider)</h5>
+                            <div className="comparison-slider">
+                              <img src={comp.screenshots[0].screenshot} alt="Previous" className="comparison-img before" />
+                              <img src={comp.screenshots[comp.screenshots.length - 1].screenshot} alt="Current" className="comparison-img after" />
+                              <div className="slider-divider" draggable="true">
+                                <span className="slider-handle">⟨ ⟩</span>
+                              </div>
+                            </div>
+                            <p className="comparison-info">
+                              Before: {formatTime(comp.screenshots[0].timestamp)} | 
+                              After: {formatTime(comp.screenshots[comp.screenshots.length - 1].timestamp)}
+                            </p>
+                          </div>
+                        )}
+                        
+                        <h5>Screenshot Gallery</h5>
+                        <div className="screenshot-gallery">
+                          {comp.screenshots.map((screenshot, sIdx) => (
+                            <div key={sIdx} className="screenshot-item">
+                              <img src={screenshot.screenshot} alt={`Screenshot ${sIdx + 1}`} className="screenshot-thumb" />
+                              <div className="screenshot-meta">
+                                <span className="screenshot-time">{formatTime(screenshot.timestamp)}</span>
+                                <span className="screenshot-size">{formatFileSize(screenshot.size)}</span>
+                                <span className="screenshot-res">{screenshot.width}×{screenshot.height}</span>
+                              </div>
+                              <div className="screenshot-actions">
+                                <button 
+                                  className="screenshot-download"
+                                  onClick={() => downloadScreenshot(screenshot.screenshot, comp.name)}
+                                  title="Download screenshot"
+                                >
+                                  ⬇️
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1497,6 +1649,137 @@ export default function Home() {
         
         .changelog-info {
           font-size: 11px; color: #888;
+        }
+
+        /* Screenshot Styles */
+        .screenshot-btn {
+          background: #8b6aff; padding: 10px 14px; border-radius: 8px; 
+          border: none; color: white; font-weight: 600; cursor: pointer;
+          transition: background 0.2s;
+        }
+        .screenshot-btn:hover { background: #7055e8; }
+        .screenshot-btn:disabled { background: #ccc; cursor: not-allowed; opacity: 0.6; }
+
+        .show-screenshots {
+          background: #16a34a; padding: 10px 14px; border-radius: 8px;
+          border: none; color: white; font-weight: 600; cursor: pointer;
+          transition: background 0.2s;
+        }
+        .show-screenshots:hover { background: #15803d; }
+
+        .screenshots-panel {
+          background: white; padding: 16px; margin-top: 12px;
+          border: 1px solid #e5e7eb; border-radius: 8px;
+          border-left: 4px solid #16a34a;
+        }
+
+        .screenshots-panel h4 {
+          margin: 0 0 16px 0; font-size: 14px; color: #1f2937;
+          display: flex; align-items: center; gap: 8px;
+        }
+
+        .screenshots-panel h5 {
+          margin: 16px 0 12px 0; font-size: 12px; color: #666;
+          text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        .screenshots-container {
+          display: flex; flex-direction: column; gap: 24px;
+        }
+
+        .screenshots-comparison {
+          border: 1px solid #d1d5db; border-radius: 8px;
+          padding: 12px; background: #f9fafb;
+        }
+
+        .comparison-slider {
+          position: relative; width: 100%; margin-top: 12px;
+          display: flex; align-items: center; overflow: hidden;
+          border-radius: 6px; background: #f5f5f5;
+          height: 300px;
+        }
+
+        .comparison-img {
+          position: absolute; top: 0; left: 0;
+          width: 100%; height: 100%; object-fit: contain;
+        }
+
+        .comparison-img.before {
+          z-index: 1; object-fit: cover;
+        }
+
+        .comparison-img.after {
+          z-index: 2; opacity: 1; object-fit: cover;
+        }
+
+        .slider-divider {
+          position: absolute; left: 50%; top: 0;
+          width: 4px; height: 100%;
+          background: #2563eb; cursor: col-resize;
+          z-index: 3; display: flex; align-items: center;
+          justify-content: center; user-select: none;
+        }
+
+        .slider-handle {
+          background: white; color: #2563eb; padding: 4px 6px;
+          border-radius: 4px; font-weight: bold; font-size: 12px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+          position: absolute; transform: translateX(-50%);
+        }
+
+        .comparison-info {
+          margin-top: 8px; font-size: 12px; color: #666;
+          text-align: center;
+        }
+
+        .screenshot-gallery {
+          display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 12px;
+        }
+
+        .screenshot-item {
+          border: 1px solid #d1d5db; border-radius: 8px;
+          overflow: hidden; display: flex; flex-direction: column;
+          transition: box-shadow 0.2s;
+        }
+
+        .screenshot-item:hover {
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .screenshot-thumb {
+          width: 100%; height: 150px; object-fit: cover;
+          background: #f5f5f5; cursor: pointer;
+        }
+
+        .screenshot-meta {
+          padding: 8px 10px; background: #f9fafb;
+          font-size: 11px; color: #666; display: flex;
+          flex-direction: column; gap: 4px;
+        }
+
+        .screenshot-time {
+          font-weight: 600; color: #1f2937;
+        }
+
+        .screenshot-size, .screenshot-res {
+          color: #999; font-family: monospace;
+        }
+
+        .screenshot-actions {
+          padding: 8px 10px; background: #f3f4f6;
+          display: flex; gap: 8px; justify-content: center;
+          border-top: 1px solid #e5e7eb;
+        }
+
+        .screenshot-download {
+          background: transparent; border: none; font-size: 16px;
+          cursor: pointer; padding: 4px 8px; border-radius: 4px;
+          transition: background 0.2s;
+        }
+
+        .screenshot-download:hover {
+          background: #d1d5db;
         }
         
         @keyframes slideUp {
