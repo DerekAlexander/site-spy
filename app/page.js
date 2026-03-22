@@ -2466,16 +2466,6 @@ export default function Home() {
         .checkbox-label input[type="checkbox"]:checked {
           background: linear-gradient(135deg, #0066cc 0%, #00d4ff 100%);
           border-color: #00d4ff;
-          box-shadow: inset 0 0 0 2px #0f1419;
-        }
-        .checkbox-label input[type="checkbox"]:checked::after {
-          content: '✓';
-          display: block;
-          color: white;
-          font-weight: bold;
-          font-size: 16px;
-          text-align: center;
-          line-height: 20px;
         }
         
         .notify-input { 
