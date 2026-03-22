@@ -1267,7 +1267,7 @@ export default function Home() {
       <UpgradeBanner />
       
       <header>
-        <h1>🕵️ Site Spy</h1>
+        <h1>Site Spy</h1>
         <p>Track your local competitors</p>
       </header>
 
