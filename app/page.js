@@ -361,6 +361,7 @@ export default function Home() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false); // Show/hide upgrade modal
   const [purchaseTier, setPurchaseTier] = useState('free'); // Purchased tier: 'free', 'basic', 'pro', 'pro_2x'
   const [siteLimit, setSiteLimit] = useState(1); // Current site limit based on tier (free = 1)
+  const [showUpgradeBanner, setShowUpgradeBanner] = useState(false); // Show banner when approaching limit
 
   // Load competitors and alert settings from localStorage on mount
   useEffect(() => {
@@ -467,12 +468,13 @@ export default function Home() {
     return parts.length > 0 ? parts.join(' • ') : 'No alerts configured';
   };
 
-  // Auto-show modal when limit is reached
+  // Show upgrade banner when 80% of limit is reached
   useEffect(() => {
-    if (competitors.length >= siteLimit && siteLimit > 0 && newUrl && !showUpgradeModal) {
-      // Don't auto-trigger on mount, only if user tries to add more
+    if (competitors.length > 0 && siteLimit > 0) {
+      const usagePercentage = (competitors.length / siteLimit) * 100;
+      setShowUpgradeBanner(usagePercentage >= 80 && purchaseTier === 'free');
     }
-  }, [competitors.length, siteLimit]);
+  }, [competitors.length, siteLimit, purchaseTier]);
 
   const addCompetitor = () => {
     // Check if limit reached FIRST (before checking URL)
@@ -1305,9 +1307,46 @@ export default function Home() {
     );
   };
 
+  // Upgrade Banner Component
+  const UpgradeBanner = () => {
+    if (!showUpgradeBanner || purchaseTier !== 'free') return null;
+    
+    const usagePercentage = siteLimit > 0 ? (competitors.length / siteLimit) * 100 : 0;
+    
+    return (
+      <div className="upgrade-banner">
+        <div className="banner-content">
+          <div className="banner-icon">⚠️</div>
+          <div className="banner-text">
+            <h3>You're using {Math.round(usagePercentage)}% of your free tracking slots</h3>
+            <p>Upgrade to Basic for 5 more sites, or Pro for 20 sites with analytics</p>
+          </div>
+          <div className="banner-actions">
+            <button 
+              className="banner-upgrade-btn"
+              onClick={() => {
+                setShowUpgradeBanner(false);
+                setShowUpgradeModal(true);
+              }}
+            >
+              Upgrade Now
+            </button>
+            <button 
+              className="banner-dismiss-btn"
+              onClick={() => setShowUpgradeBanner(false)}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="app">
       <UpgradeModal />
+      <UpgradeBanner />
       
       <header>
         <h1>🕵️ Site Spy</h1>
@@ -2753,6 +2792,70 @@ export default function Home() {
           background: #0066cc;
         }
         
+        /* UPGRADE BANNER - MOBILE FIRST */
+        .upgrade-banner {
+          background: linear-gradient(135deg, #ff6600 0%, #ff9933 100%);
+          padding: 14px 16px; margin-bottom: 20px;
+          border-radius: 12px; box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
+          animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .banner-content {
+          display: flex; flex-direction: column; gap: 12px;
+          align-items: flex-start;
+        }
+        
+        .banner-icon {
+          font-size: 24px; animation: pulse 1.5s infinite;
+        }
+        
+        .banner-text {
+          flex: 1;
+        }
+        
+        .banner-text h3 {
+          margin: 0 0 4px 0; font-size: 15px; font-weight: 600;
+          color: white; line-height: 1.3;
+        }
+        
+        .banner-text p {
+          margin: 0; font-size: 13px; color: rgba(255, 255, 255, 0.9);
+          line-height: 1.4;
+        }
+        
+        .banner-actions {
+          display: flex; gap: 10px; width: 100%;
+        }
+        
+        .banner-upgrade-btn {
+          flex: 1; background: white; color: #ff6600;
+          border: none; border-radius: 8px; padding: 10px 14px;
+          font-weight: 700; font-size: 14px; cursor: pointer;
+          transition: all 0.2s; min-height: 40px;
+        }
+        
+        .banner-upgrade-btn:hover {
+          transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255, 102, 0, 0.4);
+          background: #ffe6cc;
+        }
+        
+        .banner-dismiss-btn {
+          flex: 0 0 auto; background: rgba(255, 255, 255, 0.2);
+          color: white; border: 1px solid white; border-radius: 8px;
+          padding: 10px 14px; font-weight: 600; font-size: 13px;
+          cursor: pointer; transition: all 0.2s; min-height: 40px;
+          white-space: nowrap;
+        }
+        
+        .banner-dismiss-btn:hover {
+          background: rgba(255, 255, 255, 0.3);
+        }
+        
         /* ANALYTICS DASHBOARD STYLES - MOBILE FIRST */
         .analytics-section {
           margin-top: 30px; margin-bottom: 20px;
@@ -3332,6 +3435,19 @@ export default function Home() {
           
           .export-btn {
             flex: 1; width: auto;
+          }
+          
+          /* UPGRADE BANNER DESKTOP */
+          .banner-content {
+            flex-direction: row; align-items: center; gap: 16px;
+          }
+          
+          .banner-actions {
+            flex-direction: row; width: auto; gap: 10px; margin-left: auto;
+          }
+          
+          .banner-upgrade-btn {
+            flex: 0 1 auto; width: auto;
           }
           
           /* TIER COMPARISON DESKTOP */
