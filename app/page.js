@@ -82,7 +82,7 @@ export default function Home() {
   const [expandedScreenshots, setExpandedScreenshots] = useState(null); // Track which competitor's screenshots are expanded
   const [showUpgradeModal, setShowUpgradeModal] = useState(false); // Show/hide upgrade modal
   const [purchaseTier, setPurchaseTier] = useState('free'); // Purchased tier: 'free', 'basic', 'pro', 'pro_2x'
-  const [siteLimit, setSiteLimit] = useState(5); // Current site limit based on tier (free = 5)
+  const [siteLimit, setSiteLimit] = useState(1); // Current site limit based on tier (free = 1)
 
   // Load competitors and alert settings from localStorage on mount
   useEffect(() => {
@@ -825,7 +825,7 @@ export default function Home() {
           
           <div className="modal-header">
             <h2>🚀 Unlock More Tracking Slots</h2>
-            <p>You've reached your {siteLimit}-site limit on the free plan</p>
+            <p>You've reached your 1-site free limit</p>
           </div>
 
           <div className="modal-body">
@@ -889,7 +889,7 @@ export default function Home() {
                 className="continue-free-btn"
                 onClick={() => setShowUpgradeModal(false)}
               >
-                Continue with {siteLimit} sites
+                Continue with 1 site
               </button>
             </div>
           </div>
