@@ -65,6 +65,284 @@ function DiffViewer({ diff }) {
   );
 }
 
+// AnalyticsDashboard Component - Premium Feature
+function AnalyticsDashboard({ competitors }) {
+  const calculateUptime = (competitor) => {
+    if (!competitor.changes || competitor.changes.length === 0) return 100;
+    
+    const checks = competitor.changes.length + (competitor.lastChecked ? 1 : 0);
+    const failedChecks = competitor.status === 'down' ? 1 : 0;
+    
+    if (checks === 0) return 0;
+    return Math.round(((checks - failedChecks) / checks) * 100);
+  };
+
+  const calculateAvgResponseTime = (competitor) => {
+    if (!competitor.changes || competitor.changes.length < 2) return 'N/A';
+    
+    // Simulate response time based on snapshot data
+    const times = competitor.changes.map((change) => {
+      const timestamp = new Date(change.timestamp);
+      return timestamp.getTime();
+    });
+    
+    if (times.length < 2) return 'N/A';
+    
+    const avgMs = times.reduce((acc, time, i) => {
+      if (i === 0) return acc;
+      return acc + (time - times[i - 1]);
+    }, 0) / (times.length - 1);
+    
+    return (avgMs / 1000).toFixed(2) + 's';
+  };
+
+  const getMostActiveDay = () => {
+    if (!competitors || competitors.length === 0) return 'N/A';
+    
+    const dayChanges = {};
+    competitors.forEach((comp) => {
+      if (comp.changes && Array.isArray(comp.changes)) {
+        comp.changes.forEach((change) => {
+          const date = new Date(change.timestamp);
+          const day = date.toLocaleDateString();
+          dayChanges[day] = (dayChanges[day] || 0) + (Array.isArray(change.changes) ? change.changes.length : 0);
+        });
+      }
+    });
+    
+    const sorted = Object.entries(dayChanges).sort((a, b) => b[1] - a[1]);
+    return sorted.length > 0 ? `${sorted[0][0]} (${sorted[0][1]} changes)` : 'N/A';
+  };
+
+  const generateHeatmap = () => {
+    const heatmapData = {};
+    const now = new Date();
+    
+    // Generate last 30 days
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      const dateKey = date.toISOString().split('T')[0];
+      heatmapData[dateKey] = 0;
+    }
+    
+    // Count changes per day
+    competitors.forEach((comp) => {
+      if (comp.changes && Array.isArray(comp.changes)) {
+        comp.changes.forEach((change) => {
+          const dateKey = new Date(change.timestamp).toISOString().split('T')[0];
+          if (dateKey in heatmapData) {
+            heatmapData[dateKey] += Array.isArray(change.changes) ? change.changes.length : 1;
+          }
+        });
+      }
+    });
+    
+    return Object.entries(heatmapData).map(([date, count]) => ({
+      date,
+      count,
+      severity: count === 0 ? 'none' : count < 3 ? 'low' : count < 6 ? 'medium' : 'high'
+    }));
+  };
+
+  const exportData = (format) => {
+    const exportContent = competitors.map(comp => {
+      const uptime = calculateUptime(comp);
+      const avgResponseTime = calculateAvgResponseTime(comp);
+      const changeCount = comp.changes ? comp.changes.length : 0;
+      
+      return {
+        domain: comp.domain,
+        url: comp.url,
+        status: comp.status,
+        uptime: `${uptime}%`,
+        avgResponseTime,
+        changesDetected: changeCount,
+        lastChecked: comp.lastChecked ? new Date(comp.lastChecked).toLocaleString() : 'Never',
+        addedDate: new Date(comp.addedAt).toLocaleString()
+      };
+    });
+
+    if (format === 'csv') {
+      const headers = Object.keys(exportContent[0] || {});
+      const csv = [
+        headers.join(','),
+        ...exportContent.map(row =>
+          headers.map(header =>
+            `"${String(row[header]).replace(/"/g, '""')}"`.substring(0, 100)
+          ).join(',')
+        )
+      ].join('\n');
+      
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `site-spy-analytics-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else if (format === 'json') {
+      const json = JSON.stringify(exportContent, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `site-spy-analytics-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  const heatmapData = generateHeatmap();
+  const maxChanges = Math.max(...heatmapData.map(d => d.count), 1);
+
+  return (
+    <div className="analytics-dashboard">
+      <div className="analytics-grid">
+        {/* Key Metrics */}
+        <div className="analytics-card metric-card">
+          <h4>📈 Total Sites Monitored</h4>
+          <div className="metric-value">{competitors.length}</div>
+          <p className="metric-detail">Active tracking</p>
+        </div>
+
+        <div className="analytics-card metric-card">
+          <h4>✅ Average Uptime</h4>
+          <div className="metric-value">
+            {competitors.length > 0
+              ? Math.round(
+                  competitors.reduce((sum, comp) => sum + calculateUptime(comp), 0) / competitors.length
+                )
+              : 0}%
+          </div>
+          <p className="metric-detail">Across all sites</p>
+        </div>
+
+        <div className="analytics-card metric-card">
+          <h4>📝 Total Changes Detected</h4>
+          <div className="metric-value">
+            {competitors.reduce((sum, comp) => sum + (comp.changes ? comp.changes.length : 0), 0)}
+          </div>
+          <p className="metric-detail">All time</p>
+        </div>
+
+        <div className="analytics-card metric-card">
+          <h4>🔥 Most Active Day</h4>
+          <div className="metric-value-text">{getMostActiveDay()}</div>
+          <p className="metric-detail">Peak activity</p>
+        </div>
+      </div>
+
+      {/* Detailed Performance Metrics */}
+      <div className="analytics-card performance-card">
+        <h4>⚡ Performance Metrics by Site</h4>
+        {competitors.length > 0 ? (
+          <div className="performance-table">
+            {competitors.map((comp) => (
+              <div key={comp.id} className="performance-row">
+                <div className="perf-site">
+                  <span className="perf-name">{comp.name}</span>
+                  <span className="perf-domain">{comp.domain}</span>
+                </div>
+                <div className="perf-metrics">
+                  <div className="perf-item">
+                    <span className="perf-label">Uptime:</span>
+                    <span className="perf-value">{calculateUptime(comp)}%</span>
+                  </div>
+                  <div className="perf-item">
+                    <span className="perf-label">Avg Response:</span>
+                    <span className="perf-value">{calculateAvgResponseTime(comp)}</span>
+                  </div>
+                  <div className="perf-item">
+                    <span className="perf-label">Changes:</span>
+                    <span className="perf-value">{comp.changes ? comp.changes.length : 0}</span>
+                  </div>
+                  <div className="perf-item">
+                    <span className="perf-label">Status:</span>
+                    <span className={`perf-status ${comp.status}`}>
+                      {comp.status === 'alive' ? '✅ Online' : comp.status === 'down' ? '❌ Down' : '⏳ Pending'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="analytics-empty">No data yet. Add sites and run checks to see performance metrics.</p>
+        )}
+      </div>
+
+      {/* Change Heat Map */}
+      <div className="analytics-card heatmap-card">
+        <h4>🗓️ Change Heat Map (Last 30 Days)</h4>
+        <p className="heatmap-description">Visual calendar showing which days had the most changes</p>
+        <div className="heatmap-container">
+          {heatmapData.map((day, idx) => {
+            const heatmapIntensity = maxChanges > 0 ? (day.count / maxChanges) * 100 : 0;
+            return (
+              <div
+                key={idx}
+                className="heatmap-cell"
+                data-severity={day.severity}
+                style={{
+                  opacity: Math.max(0.2, heatmapIntensity / 100),
+                  backgroundColor: day.severity === 'none'
+                    ? '#1a2a3a'
+                    : day.severity === 'low'
+                    ? '#0066cc'
+                    : day.severity === 'medium'
+                    ? '#ff9900'
+                    : '#ff3333'
+                }}
+                title={`${day.date}: ${day.count} changes`}
+              >
+                <span className="heatmap-count">{day.count}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="heatmap-legend">
+          <span>No changes</span>
+          <span>🔵 Low</span>
+          <span>🟠 Medium</span>
+          <span>🔴 High</span>
+        </div>
+      </div>
+
+      {/* Export Options */}
+      <div className="analytics-card export-card">
+        <h4>📥 Export Reports</h4>
+        <p className="export-description">Download your monitoring data for external analysis</p>
+        <div className="export-buttons">
+          <button 
+            className="export-btn csv-btn"
+            onClick={() => exportData('csv')}
+          >
+            📄 Export as CSV
+          </button>
+          <button 
+            className="export-btn json-btn"
+            onClick={() => exportData('json')}
+          >
+            📋 Export as JSON
+          </button>
+        </div>
+        <p className="export-info">📌 Includes uptime %, response times, and change history</p>
+      </div>
+
+      {/* Premium Feature Notice */}
+      <div className="analytics-card premium-notice">
+        <h4>⭐ Premium Features</h4>
+        <p className="premium-text">
+          This analytics dashboard is a <strong>premium feature</strong>. 
+          Track unlimited sites and get detailed performance insights with a Pro plan.
+        </p>
+        <button className="premium-upgrade-btn">🚀 Upgrade to Pro</button>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [competitors, setCompetitors] = useState([]);
   const [newUrl, setNewUrl] = useState('');
@@ -1358,6 +1636,17 @@ export default function Home() {
         </section>
       </main>
 
+      {/* Analytics Dashboard Panel */}
+      <section className="analytics-section">
+        <button 
+          className="analytics-toggle"
+          onClick={() => setShowChangelog(false)} // Hide changelog when opening analytics
+        >
+          📊 Analytics & Insights
+        </button>
+        <AnalyticsDashboard competitors={competitors} />
+      </section>
+
       <style>{`
         /* MOBILE-FIRST RESET */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -2320,6 +2609,244 @@ export default function Home() {
           background: #0066cc;
         }
         
+        /* ANALYTICS DASHBOARD STYLES - MOBILE FIRST */
+        .analytics-section {
+          margin-top: 30px; margin-bottom: 20px;
+        }
+        
+        .analytics-toggle {
+          width: 100%; background: linear-gradient(135deg, #1a2a3a 0%, #0f1419 100%);
+          color: #e0f2ff; border: 2px solid #0066cc; border-radius: 12px;
+          padding: 14px 16px; font-size: 15px; font-weight: 600;
+          cursor: pointer; transition: all 0.2s; min-height: 48px;
+          text-align: left;
+        }
+        
+        .analytics-toggle:hover {
+          background: linear-gradient(135deg, #0066cc 0%, #1a2a3a 100%);
+          box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+        }
+        
+        .analytics-dashboard {
+          display: flex; flex-direction: column; gap: 16px;
+          margin-top: 16px; animation: slideUp 0.3s ease;
+        }
+        
+        .analytics-grid {
+          display: grid; grid-template-columns: 1fr 1fr;
+          gap: 12px; margin-bottom: 8px;
+        }
+        
+        .analytics-card {
+          background: linear-gradient(135deg, #1a2a3a 0%, #0f1419 100%);
+          border: 1px solid #0066cc; border-radius: 12px; padding: 16px;
+          box-shadow: 0 2px 8px rgba(0, 100, 200, 0.2);
+          transition: all 0.2s ease;
+        }
+        
+        .analytics-card:hover {
+          box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+          border-color: #00d4ff;
+        }
+        
+        .analytics-card h4 {
+          margin: 0 0 12px 0; font-size: 15px; color: #00ffff;
+          font-weight: 600; line-height: 1.3;
+        }
+        
+        .metric-card {
+          display: flex; flex-direction: column; align-items: center;
+          text-align: center; padding: 16px 12px;
+          background: linear-gradient(135deg, #0f2a4a 0%, #1a2a3a 100%);
+          border-left: 4px solid #00d4ff;
+        }
+        
+        .metric-value {
+          font-size: 28px; font-weight: 700; color: #00d4ff;
+          margin: 8px 0; font-variant-numeric: tabular-nums;
+        }
+        
+        .metric-value-text {
+          font-size: 13px; color: #8fb5d9; margin: 10px 0;
+          word-break: break-word; line-height: 1.4;
+        }
+        
+        .metric-detail {
+          font-size: 12px; color: #5f8fb5; margin: 0;
+          text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        
+        .performance-card {
+          grid-column: 1 / -1;
+        }
+        
+        .performance-table {
+          display: flex; flex-direction: column; gap: 12px;
+        }
+        
+        .performance-row {
+          display: flex; flex-direction: column; gap: 8px;
+          background: #0f1419; padding: 12px; border-radius: 8px;
+          border-left: 3px solid #00d4ff;
+        }
+        
+        .perf-site {
+          display: flex; flex-direction: column; gap: 4px;
+        }
+        
+        .perf-name {
+          font-weight: 600; color: #e0f2ff; font-size: 14px;
+        }
+        
+        .perf-domain {
+          font-size: 12px; color: #8fb5d9; font-family: monospace;
+        }
+        
+        .perf-metrics {
+          display: grid; grid-template-columns: 1fr 1fr;
+          gap: 8px; margin-top: 8px;
+        }
+        
+        .perf-item {
+          display: flex; flex-direction: column; gap: 2px;
+          font-size: 12px;
+        }
+        
+        .perf-label {
+          color: #5f8fb5; text-transform: uppercase;
+          letter-spacing: 0.5px; font-weight: 600;
+        }
+        
+        .perf-value {
+          color: #00ffcc; font-weight: 600; font-family: monospace;
+        }
+        
+        .perf-status {
+          display: inline-block; padding: 3px 6px; border-radius: 4px;
+          font-size: 11px; font-weight: 600;
+          background: #2a3a4a; color: #00d4ff;
+        }
+        
+        .perf-status.alive {
+          background: #1aaa66; color: #00ff99;
+        }
+        
+        .perf-status.down {
+          background: #aa1a1a; color: #ff6666;
+        }
+        
+        .analytics-empty {
+          color: #5f8fb5; font-size: 13px; text-align: center;
+          padding: 16px; font-style: italic; line-height: 1.4;
+        }
+        
+        .heatmap-card {
+          grid-column: 1 / -1;
+        }
+        
+        .heatmap-description {
+          font-size: 12px; color: #8fb5d9; margin: -10px 0 14px 0;
+          line-height: 1.4;
+        }
+        
+        .heatmap-container {
+          display: grid; grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+          gap: 4px; margin-bottom: 12px;
+        }
+        
+        .heatmap-cell {
+          aspect-ratio: 1; border-radius: 4px;
+          border: 1px solid #0066cc; display: flex;
+          align-items: center; justify-content: center;
+          cursor: pointer; transition: all 0.2s;
+          font-size: 10px; color: #e0f2ff; font-weight: 600;
+          min-height: 30px;
+        }
+        
+        .heatmap-cell:hover {
+          border-color: #00d4ff; box-shadow: 0 2px 8px rgba(0, 212, 255, 0.4);
+          transform: scale(1.1);
+        }
+        
+        .heatmap-count {
+          font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums;
+        }
+        
+        .heatmap-legend {
+          display: flex; gap: 12px; font-size: 12px; color: #8fb5d9;
+          flex-wrap: wrap; margin-top: 10px; padding-top: 12px;
+          border-top: 1px solid #0066cc;
+        }
+        
+        .export-card {
+          grid-column: 1 / -1;
+        }
+        
+        .export-description {
+          font-size: 12px; color: #8fb5d9; margin: -10px 0 14px 0;
+          line-height: 1.4;
+        }
+        
+        .export-buttons {
+          display: flex; flex-direction: column; gap: 10px;
+          margin-bottom: 12px;
+        }
+        
+        .export-btn {
+          background: linear-gradient(135deg, #0066cc 0%, #00a5cc 100%);
+          color: white; border: none; border-radius: 8px;
+          padding: 12px 14px; min-height: 44px;
+          font-size: 14px; font-weight: 600; cursor: pointer;
+          transition: all 0.2s; width: 100%;
+        }
+        
+        .export-btn:hover {
+          background: linear-gradient(135deg, #0088dd 0%, #00d4ff 100%);
+          box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+          transform: translateY(-2px);
+        }
+        
+        .export-btn.csv-btn {
+          background: linear-gradient(135deg, #0066cc 0%, #0088dd 100%);
+        }
+        
+        .export-btn.json-btn {
+          background: linear-gradient(135deg, #00d4ff 0%, #0066cc 100%);
+        }
+        
+        .export-info {
+          font-size: 12px; color: #5f8fb5; margin: 0;
+          text-align: center; font-style: italic; line-height: 1.4;
+        }
+        
+        .premium-notice {
+          grid-column: 1 / -1; background: linear-gradient(135deg, #1a0f2a 0%, #0f1a3a 100%);
+          border: 2px solid #9933ff;
+        }
+        
+        .premium-text {
+          font-size: 13px; color: #b5a0cc; margin: 0 0 12px 0;
+          line-height: 1.5;
+        }
+        
+        .premium-text strong {
+          color: #00ffff;
+        }
+        
+        .premium-upgrade-btn {
+          background: linear-gradient(135deg, #9933ff 0%, #ff0099 100%);
+          color: white; border: none; border-radius: 8px;
+          padding: 12px 14px; min-height: 44px;
+          font-size: 14px; font-weight: 600; cursor: pointer;
+          transition: all 0.2s; width: 100%;
+        }
+        
+        .premium-upgrade-btn:hover {
+          background: linear-gradient(135deg, #aa44ff 0%, #ff33aa 100%);
+          box-shadow: 0 4px 12px rgba(255, 0, 153, 0.3);
+          transform: translateY(-2px);
+        }
+        
         @keyframes slideUp {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
@@ -2489,6 +3016,44 @@ export default function Home() {
           
           main {
             padding-bottom: 40px;
+          }
+          
+          /* ANALYTICS DESKTOP */
+          .analytics-grid {
+            grid-template-columns: repeat(4, 1fr);
+          }
+          
+          .metric-card {
+            padding: 20px 16px;
+          }
+          
+          .metric-value {
+            font-size: 32px;
+          }
+          
+          .performance-row {
+            flex-direction: row; align-items: center;
+            gap: 16px;
+          }
+          
+          .perf-site {
+            min-width: 150px;
+          }
+          
+          .perf-metrics {
+            flex: 1; grid-template-columns: repeat(4, 1fr);
+          }
+          
+          .heatmap-container {
+            grid-template-columns: repeat(14, 1fr);
+          }
+          
+          .export-buttons {
+            flex-direction: row;
+          }
+          
+          .export-btn {
+            flex: 1; width: auto;
           }
         }
         
