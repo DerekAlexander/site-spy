@@ -2439,16 +2439,25 @@ export default function Home() {
         }
         .alert-settings select:focus { outline: none; border-color: #00d4ff; }
         
-        .checkbox-group { margin-bottom: 14px; }
+        .checkbox-group { margin-bottom: 16px; }
         .checkbox-label { 
-          display: flex; align-items: center; gap: 10px; 
-          font-weight: 400 !important; cursor: pointer; padding: 10px; 
-          border-radius: 8px; transition: background 0.2s; font-size: 15px; color: #e0f2ff;
+          display: flex; align-items: center; gap: 14px; 
+          font-weight: 600 !important; cursor: pointer; padding: 14px 16px; 
+          border-radius: 10px; transition: all 0.3s ease; font-size: 16px; color: #e0f2ff;
+          border: 2px solid transparent; background: #1a3a4a;
+          min-height: 52px;
         }
-        .checkbox-label:hover { background: #1a3a4a; }
+        .checkbox-label:hover { 
+          background: #1a4a6a; 
+          border-color: #00a5cc;
+          box-shadow: 0 4px 12px rgba(0, 165, 204, 0.2);
+        }
         .checkbox-label input[type="checkbox"] { 
-          width: 20px; height: 20px; accent-color: #00d4ff; 
-          cursor: pointer; flex-shrink: 0;
+          width: 24px; height: 24px; accent-color: #00d4ff; 
+          cursor: pointer; flex-shrink: 0; accent-color: #00ffff;
+        }
+        .checkbox-label input[type="checkbox"]:checked {
+          accent-color: #00d4ff;
         }
         
         .notify-input { 
