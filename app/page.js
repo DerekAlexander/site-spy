@@ -189,6 +189,13 @@ export default function Home() {
     return parts.length > 0 ? parts.join(' • ') : 'No alerts configured';
   };
 
+  // Auto-show modal when limit is reached
+  useEffect(() => {
+    if (competitors.length >= siteLimit && siteLimit > 0 && newUrl && !showUpgradeModal) {
+      // Don't auto-trigger on mount, only if user tries to add more
+    }
+  }, [competitors.length, siteLimit]);
+
   const addCompetitor = () => {
     if (!newUrl) return;
     
@@ -931,13 +938,13 @@ export default function Home() {
               value={newUrl}
               onChange={(e) => setNewUrl(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addCompetitor()}
-              disabled={competitors.length >= siteLimit}
+              placeholder={competitors.length >= siteLimit ? 'Upgrade to add more sites' : 'Enter website URL...'}
             />
             <button 
               onClick={addCompetitor}
-              disabled={competitors.length >= siteLimit}
+              title={competitors.length >= siteLimit ? 'Click to upgrade' : ''}
             >
-              {competitors.length >= siteLimit ? 'Limit Reached' : 'Add'}
+              {competitors.length >= siteLimit ? '🔓 Upgrade to Add More' : 'Add'}
             </button>
           </div>
           <p className="info-text">💡 Note: Content tracking works best when deployed on a backend server (CORS may block browser requests)</p>
