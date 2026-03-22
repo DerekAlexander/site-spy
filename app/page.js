@@ -197,13 +197,13 @@ export default function Home() {
   }, [competitors.length, siteLimit]);
 
   const addCompetitor = () => {
-    if (!newUrl) return;
-    
-    // Check if limit reached
+    // Check if limit reached FIRST (before checking URL)
     if (competitors.length >= siteLimit) {
       setShowUpgradeModal(true);
       return;
     }
+    
+    if (!newUrl) return;
     
     const url = newUrl.startsWith('http') ? newUrl : `https://${newUrl}`;
     const domain = url.replace('https://', '').replace('www.', '');
