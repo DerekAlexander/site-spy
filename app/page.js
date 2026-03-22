@@ -2346,7 +2346,7 @@ export default function Home() {
         
         .checkbox-group { margin-bottom: 16px; }
         .checkbox-label { 
-          display: flex; align-items: center; gap: 14px; 
+          display: flex; align-items: center; gap: 20px; 
           font-weight: 600 !important; cursor: pointer; padding: 14px 16px; 
           border-radius: 10px; transition: all 0.3s ease; font-size: 16px; color: #e0f2ff;
           border: 2px solid transparent; background: #1a3a4a;
