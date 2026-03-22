@@ -431,11 +431,11 @@ export default function Home() {
   const calculateSiteLimit = (tier) => {
     switch (tier) {
       case 'free': return 1;
-      case 'basic': return 6; // +5 sites ($9.99)
-      case 'pro': return 11; // +5 more sites ($5)
-      case 'pro_2x': return 16; // +5 more sites ($5)
-      case 'pro_3x': return 21; // +5 more sites ($5)
-      case 'pro_4x': return 26; // +5 more sites ($5)
+      case 'basic': return 6; // +5 sites ($9.99/month)
+      case 'pro': return 20; // 20 sites ($19.99/month)
+      case 'pro_annual': return 20; // 20 sites ($179.99/year)
+      case 'pro_2x': return 40; // +20 more sites ($10/month)
+      case 'enterprise': return Infinity; // Unlimited
       default: return 1;
     }
   };
@@ -1099,9 +1099,10 @@ export default function Home() {
     };
   };
 
-  // Upgrade Modal Component
+  // Upgrade Modal Component - Enhanced with tier comparison
   const UpgradeModal = () => {
     if (!showUpgradeModal) return null;
+    const [showComparison, setShowComparison] = useState(false);
     
     return (
       <div className="modal-overlay" onClick={() => setShowUpgradeModal(false)}>
@@ -1126,44 +1127,165 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="upgrade-options">
-              <div className="upgrade-option">
-                <div className="option-header">
-                  <h3>Upgrade to Basic</h3>
-                  <span className="price">$9.99</span>
+            {/* Subscription Options */}
+            <div className="subscription-options">
+              {/* Basic Monthly */}
+              <div className="subscription-option">
+                <div className="sub-header">
+                  <span className="sub-name">📊 Basic Plan</span>
                 </div>
-                <div className="option-features">
-                  <p>✅ <strong>5 additional tracking slots</strong> (6 total)</p>
-                  <p>✅ Perfect for small businesses</p>
-                  <p>✅ Track your main competitors</p>
-                </div>
+                <div className="sub-price">$9.99<span style={{fontSize: '14px', fontWeight: '400', color: '#5f8fb5'}}>/month</span></div>
+                <div className="sub-period">Monthly Billing</div>
+                <ul className="sub-features">
+                  <li>6 tracking slots</li>
+                  <li>Change detection</li>
+                  <li>Screenshot comparison</li>
+                  <li>Alert settings</li>
+                </ul>
                 <button 
-                  className="upgrade-btn"
+                  className="sub-btn"
                   onClick={() => handleUpgrade('basic')}
                 >
-                  Unlock Basic ($9.99)
+                  Get Basic
                 </button>
               </div>
 
-              <div className="upgrade-option">
-                <div className="option-header">
-                  <h3>Add More Slots</h3>
-                  <span className="price">$5 each</span>
+              {/* Pro Monthly - Featured */}
+              <div className="subscription-option featured">
+                <div className="sub-header">
+                  <span className="sub-name">⭐ Pro Plan</span>
+                  <span className="sub-featured-badge">Most Popular</span>
                 </div>
-                <div className="option-features">
-                  <p>✅ 5 additional slots per purchase</p>
-                  <p>✅ Buy as many as you need</p>
-                  <p className="info-text">Available after Basic upgrade</p>
-                </div>
+                <div className="sub-price">$19.99<span style={{fontSize: '14px', fontWeight: '400', color: '#5f8fb5'}}>/month</span></div>
+                <div className="sub-period">Monthly Billing</div>
+                <ul className="sub-features">
+                  <li>20 tracking slots</li>
+                  <li>Advanced analytics dashboard</li>
+                  <li>Performance metrics & heatmap</li>
+                  <li>CSV/JSON export reports</li>
+                  <li>Priority support</li>
+                </ul>
                 <button 
-                  className="upgrade-btn secondary"
+                  className="sub-btn featured"
                   onClick={() => handleUpgrade('pro')}
-                  disabled={purchaseTier === 'free'}
-                  title={purchaseTier === 'free' ? 'Upgrade to Basic first' : ''}
                 >
-                  Add 5 Slots ($5)
+                  Get Pro
                 </button>
               </div>
+
+              {/* Pro Annual - Best Value */}
+              <div className="subscription-option featured">
+                <div className="sub-header">
+                  <span className="sub-name">⭐ Pro Annual</span>
+                  <span className="sub-featured-badge">Save 25%</span>
+                </div>
+                <div className="sub-price">$179.99<span style={{fontSize: '14px', fontWeight: '400', color: '#5f8fb5'}}>/year</span></div>
+                <div className="sub-period">Renews annually</div>
+                <ul className="sub-features">
+                  <li>20 tracking slots</li>
+                  <li>All Pro features included</li>
+                  <li>Unlimited storage</li>
+                  <li>Early access to new features</li>
+                  <li>Priority support</li>
+                </ul>
+                <button 
+                  className="sub-btn featured"
+                  onClick={() => handleUpgrade('pro_annual')}
+                >
+                  Get Pro Annual - Save $60!
+                </button>
+                <div className="sub-savings">💰 Save $60/year vs monthly billing</div>
+              </div>
+
+              {/* Enterprise */}
+              <div className="subscription-option">
+                <div className="sub-header">
+                  <span className="sub-name">🏢 Enterprise Plan</span>
+                </div>
+                <div className="sub-price">Custom<span style={{fontSize: '14px', fontWeight: '400', color: '#5f8fb5'}}>/month</span></div>
+                <div className="sub-period">Contact sales for pricing</div>
+                <ul className="sub-features">
+                  <li>Unlimited tracking slots</li>
+                  <li>Custom integrations</li>
+                  <li>Dedicated account manager</li>
+                  <li>SLA guarantee</li>
+                  <li>Team collaboration</li>
+                </ul>
+                <button className="sub-btn" disabled style={{opacity: 0.6, cursor: 'not-allowed'}}>
+                  Contact Sales
+                </button>
+              </div>
+            </div>
+
+            {/* Feature Comparison */}
+            <div className="tier-comparison">
+              <button 
+                className="upgrade-btn"
+                onClick={() => setShowComparison(!showComparison)}
+                style={{marginBottom: '12px'}}
+              >
+                {showComparison ? '▼' : '▶'} Compare All Plans
+              </button>
+              
+              {showComparison && (
+                <div className="comparison-table">
+                  <div className="comparison-header">
+                    <div>Feature</div>
+                    <div>Free</div>
+                    <div>Basic</div>
+                    <div>Pro</div>
+                  </div>
+                  
+                  <div className="comparison-row">
+                    <div className="comparison-feature">Tracking Slots</div>
+                    <div className="comparison-value">1</div>
+                    <div className="comparison-value">6</div>
+                    <div className="comparison-value">20</div>
+                  </div>
+                  
+                  <div className="comparison-row">
+                    <div className="comparison-feature">Change Detection</div>
+                    <div className="comparison-value included">✅</div>
+                    <div className="comparison-value included">✅</div>
+                    <div className="comparison-value included">✅</div>
+                  </div>
+                  
+                  <div className="comparison-row">
+                    <div className="comparison-feature">Screenshots</div>
+                    <div className="comparison-value included">✅</div>
+                    <div className="comparison-value included">✅</div>
+                    <div className="comparison-value included">✅</div>
+                  </div>
+                  
+                  <div className="comparison-row">
+                    <div className="comparison-feature">Analytics Dashboard</div>
+                    <div className="comparison-value not-included">✗</div>
+                    <div className="comparison-value not-included">✗</div>
+                    <div className="comparison-value included">✅</div>
+                  </div>
+                  
+                  <div className="comparison-row">
+                    <div className="comparison-feature">Performance Metrics</div>
+                    <div className="comparison-value not-included">✗</div>
+                    <div className="comparison-value not-included">✗</div>
+                    <div className="comparison-value included">✅</div>
+                  </div>
+                  
+                  <div className="comparison-row">
+                    <div className="comparison-feature">Export Reports (CSV/JSON)</div>
+                    <div className="comparison-value not-included">✗</div>
+                    <div className="comparison-value not-included">✗</div>
+                    <div className="comparison-value included">✅</div>
+                  </div>
+                  
+                  <div className="comparison-row">
+                    <div className="comparison-feature">Email Support</div>
+                    <div className="comparison-value not-included">✗</div>
+                    <div className="comparison-value included">✅</div>
+                    <div className="comparison-value included">✅</div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="modal-footer">
@@ -1813,45 +1935,67 @@ export default function Home() {
         
         .upgrade-btn {
           width: 100%; background: linear-gradient(135deg, #0066cc 0%, #00d4ff 100%);
-          color: white; border: none; border-radius: 10px; 
-          padding: 14px 16px; min-height: 48px;
-          font-weight: 600; font-size: 15px; cursor: pointer;
-          transition: all 0.3s ease;
+          color: white; border: 2px solid #00d4ff; border-radius: 12px; 
+          padding: 16px 16px; min-height: 52px;
+          font-weight: 700; font-size: 16px; cursor: pointer;
+          transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+          display: flex; align-items: center; justify-content: center;
         }
         
         .upgrade-btn:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 16px rgba(0, 212, 255, 0.4);
+          transform: translateY(-3px);
+          box-shadow: 0 12px 24px rgba(0, 212, 255, 0.5);
+          border-color: #00ffff;
+          background: linear-gradient(135deg, #0088dd 0%, #00ffff 100%);
+        }
+        
+        .upgrade-btn:active:not(:disabled) {
+          transform: translateY(-1px);
         }
         
         .upgrade-btn:disabled {
-          opacity: 0.5; cursor: not-allowed; background: #3a4a5a;
+          opacity: 0.5; cursor: not-allowed; background: #3a4a5a; border-color: #5a6a7a;
         }
         
         .upgrade-btn.secondary {
-          background: linear-gradient(135deg, #00d4ff 0%, #0066cc 100%);
+          background: linear-gradient(135deg, #1a4a6a 0%, #0066cc 100%);
+          border-color: #00a5cc;
+        }
+        
+        .upgrade-btn.secondary:hover:not(:disabled) {
+          background: linear-gradient(135deg, #1a6a8a 0%, #0088dd 100%);
+          border-color: #00d4ff;
+          box-shadow: 0 12px 24px rgba(0, 165, 204, 0.5);
         }
         
         .modal-footer {
-          padding: 20px 16px; background: #0f1419; border-top: 1px solid #0066cc;
+          padding: 20px 16px; background: #1a2a3a; border-top: 1px solid #0066cc;
           border-radius: 0 0 20px 20px;
         }
         
         .footer-note {
-          font-size: 13px; color: #5f8fb5; margin-bottom: 14px;
+          font-size: 13px; color: #5f8fb5; margin-bottom: 16px;
           text-align: center; font-style: italic; line-height: 1.4;
         }
         
         .continue-free-btn {
-          width: 100%; background: #00d4ff; color: #0f1419;
-          border: none; border-radius: 10px; 
-          padding: 14px 16px; min-height: 48px;
-          font-weight: 600; font-size: 15px; cursor: pointer;
-          transition: all 0.2s;
+          width: 100%; background: linear-gradient(135deg, #00d4ff 0%, #00ffff 100%); color: #0f1419;
+          border: 2px solid #00ffff; border-radius: 12px; 
+          padding: 16px 16px; min-height: 52px;
+          font-weight: 700; font-size: 16px; cursor: pointer;
+          transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3);
+          display: flex; align-items: center; justify-content: center;
         }
         
         .continue-free-btn:hover {
-          background: #00ffff;
+          background: linear-gradient(135deg, #00ffff 0%, #00ffff 100%);
+          box-shadow: 0 12px 24px rgba(0, 255, 255, 0.5);
+          transform: translateY(-3px);
+          border-color: #ffffff;
+        }
+        
+        .continue-free-btn:active {
+          transform: translateY(-1px);
         }
         
         /* SITE COUNTER - MOBILE FIRST */
@@ -2847,6 +2991,140 @@ export default function Home() {
           transform: translateY(-2px);
         }
         
+        /* TIER COMPARISON TABLE - MOBILE FIRST */
+        .tier-comparison {
+          grid-column: 1 / -1; margin-top: 12px;
+        }
+        
+        .comparison-table {
+          background: #0f1419; border-radius: 10px;
+          overflow: hidden; margin-bottom: 12px;
+        }
+        
+        .comparison-header {
+          display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr;
+          gap: 12px; padding: 12px; background: #1a2a3a;
+          border-bottom: 2px solid #0066cc; font-weight: 600;
+          font-size: 12px; color: #8fb5d9; text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        
+        .comparison-row {
+          display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr;
+          gap: 12px; padding: 12px; border-bottom: 1px solid #0066cc;
+          align-items: center; font-size: 13px;
+        }
+        
+        .comparison-row:last-child {
+          border-bottom: none;
+        }
+        
+        .comparison-feature {
+          color: #e0f2ff; font-weight: 500;
+        }
+        
+        .comparison-value {
+          text-align: center; color: #00d4ff; font-weight: 600;
+          font-variant-numeric: tabular-nums;
+        }
+        
+        .comparison-value.included {
+          color: #00ff99; font-size: 18px;
+        }
+        
+        .comparison-value.not-included {
+          color: #666; font-size: 18px;
+        }
+        
+        /* SUBSCRIPTION OPTIONS - MOBILE FIRST */
+        .subscription-options {
+          display: flex; flex-direction: column; gap: 12px;
+          margin-top: 12px;
+        }
+        
+        .subscription-option {
+          border: 2px solid #0066cc; border-radius: 10px;
+          padding: 14px; background: #0f1419;
+          transition: all 0.2s;
+        }
+        
+        .subscription-option:hover {
+          border-color: #00d4ff; box-shadow: 0 4px 12px rgba(0, 212, 255, 0.2);
+          background: #1a2a3a;
+        }
+        
+        .subscription-option.featured {
+          border: 2px solid #ff0099; background: #1a0f2a;
+          box-shadow: 0 4px 12px rgba(255, 0, 153, 0.2);
+        }
+        
+        .sub-header {
+          display: flex; justify-content: space-between; align-items: flex-start;
+          margin-bottom: 10px;
+        }
+        
+        .sub-name {
+          font-size: 16px; font-weight: 600; color: #e0f2ff;
+        }
+        
+        .sub-featured-badge {
+          background: #ff0099; color: white; padding: 4px 8px;
+          border-radius: 4px; font-size: 11px; font-weight: 600;
+          text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        
+        .sub-price {
+          font-size: 24px; font-weight: 700; color: #00d4ff;
+          margin-bottom: 8px;
+        }
+        
+        .sub-period {
+          font-size: 12px; color: #5f8fb5; text-transform: uppercase;
+          letter-spacing: 0.5px; margin-bottom: 10px;
+        }
+        
+        .sub-features {
+          font-size: 12px; color: #8fb5d9; margin-bottom: 12px;
+          line-height: 1.6; display: flex; flex-direction: column; gap: 6px;
+        }
+        
+        .sub-features li {
+          display: flex; align-items: flex-start; gap: 8px;
+        }
+        
+        .sub-features li:before {
+          content: "✅"; color: #00ff99; flex-shrink: 0;
+        }
+        
+        .sub-btn {
+          width: 100%; background: linear-gradient(135deg, #0066cc 0%, #00d4ff 100%);
+          color: white; border: none; border-radius: 8px; padding: 12px 14px;
+          font-weight: 600; font-size: 14px; cursor: pointer;
+          transition: all 0.2s; min-height: 44px;
+        }
+        
+        .sub-btn:hover {
+          background: linear-gradient(135deg, #0088dd 0%, #00ffff 100%);
+          transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 212, 255, 0.4);
+        }
+        
+        .sub-btn.featured {
+          background: linear-gradient(135deg, #ff0099 0%, #ff33aa 100%);
+          font-size: 15px; font-weight: 700;
+        }
+        
+        .sub-btn.featured:hover {
+          background: linear-gradient(135deg, #ff33aa 0%, #ff66bb 100%);
+          box-shadow: 0 4px 12px rgba(255, 0, 153, 0.4);
+        }
+        
+        .sub-savings {
+          background: #1a0f2a; color: #ff99aa;
+          padding: 8px; border-radius: 6px; font-size: 11px;
+          font-weight: 600; text-align: center; margin-top: 8px;
+          border: 1px solid #ff0099;
+        }
+        
         @keyframes slideUp {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
@@ -3054,6 +3332,23 @@ export default function Home() {
           
           .export-btn {
             flex: 1; width: auto;
+          }
+          
+          /* TIER COMPARISON DESKTOP */
+          .subscription-options {
+            flex-direction: row; gap: 14px;
+          }
+          
+          .subscription-option {
+            flex: 1;
+          }
+          
+          .comparison-header {
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+          }
+          
+          .comparison-row {
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
           }
         }
         
