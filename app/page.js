@@ -1739,36 +1739,66 @@ export default function Home() {
         
         /* ACTION BUTTONS - MOBILE FIRST (FULL-WIDTH STACK) */
         .comp-actions { 
-          display: grid; grid-template-columns: 1fr 1fr; gap: 8px; 
+          display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; 
           width: 100%;
         }
         .comp-actions .check { 
-          background: linear-gradient(135deg, #0066cc 0%, #00a5cc 100%); padding: 12px 10px; font-size: 14px; 
-          font-weight: 600; border-radius: 8px; min-height: 44px; width: 100%; color: white;
+          background: linear-gradient(135deg, #0066cc 0%, #00a5cc 100%); padding: 14px 8px; font-size: 15px; 
+          font-weight: 700; border-radius: 8px; min-height: 48px; width: 100%; color: white;
+          display: flex; align-items: center; justify-content: center; cursor: pointer;
+          transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(0, 165, 204, 0.3);
         }
-        .comp-actions .check:hover:not(:disabled) { background: linear-gradient(135deg, #0088dd 0%, #00d4ff 100%); }
+        .comp-actions .check:hover:not(:disabled) { 
+          background: linear-gradient(135deg, #0088dd 0%, #00d4ff 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 212, 255, 0.4);
+        }
         .comp-actions .screenshot-btn {
-          background: linear-gradient(135deg, #6600cc 0%, #9933ff 100%); padding: 12px 10px; font-size: 14px;
-          font-weight: 600; border-radius: 8px; min-height: 44px; width: 100%; color: white;
+          background: linear-gradient(135deg, #6600cc 0%, #9933ff 100%); padding: 14px 8px; font-size: 18px;
+          font-weight: 700; border-radius: 8px; min-height: 48px; width: 100%; color: white;
+          display: flex; align-items: center; justify-content: center; cursor: pointer;
+          transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(153, 51, 255, 0.3);
         }
-        .comp-actions .screenshot-btn:hover { background: linear-gradient(135deg, #7722dd 0%, #aa44ff 100%); }
+        .comp-actions .screenshot-btn:hover { 
+          background: linear-gradient(135deg, #7722dd 0%, #aa44ff 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(170, 68, 255, 0.4);
+        }
         .comp-actions .show-changes {
-          background: linear-gradient(135deg, #cc6600 0%, #ff9900 100%); padding: 12px 10px; font-size: 14px; 
-          font-weight: 600; border-radius: 8px; min-height: 44px; 
+          background: linear-gradient(135deg, #cc6600 0%, #ff9900 100%); padding: 14px 8px; font-size: 15px; 
+          font-weight: 700; border-radius: 8px; min-height: 48px; 
           width: 100%; white-space: nowrap; color: white;
+          display: flex; align-items: center; justify-content: center; cursor: pointer;
+          transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(255, 153, 0, 0.3);
         }
-        .comp-actions .show-changes:hover { background: linear-gradient(135deg, #dd7711 0%, #ffaa11 100%); }
+        .comp-actions .show-changes:hover { 
+          background: linear-gradient(135deg, #dd7711 0%, #ffaa11 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(255, 170, 17, 0.4);
+        }
         .comp-actions .show-screenshots {
-          background: linear-gradient(135deg, #00aa66 0%, #00dd99 100%); padding: 12px 10px; font-size: 14px;
-          font-weight: 600; border-radius: 8px; min-height: 44px; width: 100%; color: #0f1419;
+          background: linear-gradient(135deg, #00aa66 0%, #00dd99 100%); padding: 14px 8px; font-size: 15px;
+          font-weight: 700; border-radius: 8px; min-height: 48px; width: 100%; color: #0f1419;
+          display: flex; align-items: center; justify-content: center; cursor: pointer;
+          transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(0, 221, 153, 0.3);
         }
-        .comp-actions .show-screenshots:hover { background: linear-gradient(135deg, #00dd77 0%, #00ffaa 100%); }
+        .comp-actions .show-screenshots:hover { 
+          background: linear-gradient(135deg, #00dd77 0%, #00ffaa 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 255, 170, 0.4);
+        }
         .comp-actions .remove { 
-          background: linear-gradient(135deg, #aa0000 0%, #ff3333 100%); padding: 12px 10px; font-size: 14px; 
-          border-radius: 8px; min-height: 44px; width: 100%; font-weight: 600;
+          background: linear-gradient(135deg, #aa0000 0%, #ff3333 100%); padding: 14px 8px; font-size: 18px; 
+          border-radius: 8px; min-height: 48px; width: 100%; font-weight: 700;
           grid-column: 1 / -1; color: white;
+          display: flex; align-items: center; justify-content: center; cursor: pointer;
+          transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(255, 51, 51, 0.3);
         }
-        .comp-actions .remove:hover:not(:disabled) { background: linear-gradient(135deg, #cc1111 0%, #ff6666 100%); }
+        .comp-actions .remove:hover:not(:disabled) { 
+          background: linear-gradient(135deg, #cc1111 0%, #ff6666 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(255, 102, 102, 0.4);
+        }
         
         /* CHANGES PANEL - MOBILE FIRST */
         .changes-panel {
