@@ -80,6 +80,9 @@ export default function Home() {
   const [showChangelog, setShowChangelog] = useState(false); // Show/hide changelog panel
   const [changelogFilter, setChangelogFilter] = useState('all'); // Filter: 'all', 'high', 'medium', 'low'
   const [expandedScreenshots, setExpandedScreenshots] = useState(null); // Track which competitor's screenshots are expanded
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false); // Show/hide upgrade modal
+  const [purchaseTier, setPurchaseTier] = useState('free'); // Purchased tier: 'free', 'basic', 'pro', 'pro_2x'
+  const [siteLimit, setSiteLimit] = useState(5); // Current site limit based on tier (free = 5)
 
   // Load competitors and alert settings from localStorage on mount
   useEffect(() => {
@@ -94,6 +97,14 @@ export default function Home() {
     const savedSettings = localStorage.getItem('site-spy-alert-settings');
     if (savedSettings) {
       setAlertSettings(JSON.parse(savedSettings));
+    }
+    
+    // Load purchase tier and calculate site limit
+    const savedTier = localStorage.getItem('site-spy-purchase-tier');
+    if (savedTier) {
+      const tier = JSON.parse(savedTier);
+      setPurchaseTier(tier.tier);
+      setSiteLimit(calculateSiteLimit(tier.tier));
     }
   }, []);
 
@@ -138,6 +149,32 @@ export default function Home() {
     return `${minutes} min`;
   };
 
+  // Calculate site limit based on purchase tier
+  const calculateSiteLimit = (tier) => {
+    switch (tier) {
+      case 'free': return 1;
+      case 'basic': return 6; // +5 sites ($9.99)
+      case 'pro': return 11; // +5 more sites ($5)
+      case 'pro_2x': return 16; // +5 more sites ($5)
+      case 'pro_3x': return 21; // +5 more sites ($5)
+      case 'pro_4x': return 26; // +5 more sites ($5)
+      default: return 1;
+    }
+  };
+
+  // Handle upgrade purchase (mock)
+  const handleUpgrade = (tier) => {
+    const newTier = {
+      tier,
+      purchasedAt: new Date().toISOString(),
+      price: tier === 'basic' ? 9.99 : 5.00
+    };
+    localStorage.setItem('site-spy-purchase-tier', JSON.stringify(newTier));
+    setPurchaseTier(tier);
+    setSiteLimit(calculateSiteLimit(tier));
+    setShowUpgradeModal(false);
+  };
+
   const getSettingsSummary = () => {
     const parts = [];
     parts.push(getIntervalLabel(alertSettings.checkInterval));
@@ -154,6 +191,12 @@ export default function Home() {
 
   const addCompetitor = () => {
     if (!newUrl) return;
+    
+    // Check if limit reached
+    if (competitors.length >= siteLimit) {
+      setShowUpgradeModal(true);
+      return;
+    }
     
     const url = newUrl.startsWith('http') ? newUrl : `https://${newUrl}`;
     const domain = url.replace('https://', '').replace('www.', '');
@@ -771,8 +814,94 @@ export default function Home() {
     };
   };
 
+  // Upgrade Modal Component
+  const UpgradeModal = () => {
+    if (!showUpgradeModal) return null;
+    
+    return (
+      <div className="modal-overlay" onClick={() => setShowUpgradeModal(false)}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <button className="modal-close" onClick={() => setShowUpgradeModal(false)}>×</button>
+          
+          <div className="modal-header">
+            <h2>🚀 Unlock More Tracking Slots</h2>
+            <p>You've reached your {siteLimit}-site limit on the free plan</p>
+          </div>
+
+          <div className="modal-body">
+            <div className="current-plan">
+              <div className="plan-badge">Your Current Plan</div>
+              <div className="plan-card current">
+                <h3>Free Plan</h3>
+                <div className="plan-limit">
+                  <span className="limit-number">{siteLimit}</span>
+                  <span className="limit-label">Site</span>
+                </div>
+                <p className="plan-desc">Perfect for getting started</p>
+              </div>
+            </div>
+
+            <div className="upgrade-options">
+              <div className="upgrade-option">
+                <div className="option-header">
+                  <h3>Upgrade to Basic</h3>
+                  <span className="price">$9.99</span>
+                </div>
+                <div className="option-features">
+                  <p>✅ <strong>5 additional tracking slots</strong> (6 total)</p>
+                  <p>✅ Perfect for small businesses</p>
+                  <p>✅ Track your main competitors</p>
+                </div>
+                <button 
+                  className="upgrade-btn"
+                  onClick={() => handleUpgrade('basic')}
+                >
+                  Unlock Basic ($9.99)
+                </button>
+              </div>
+
+              <div className="upgrade-option">
+                <div className="option-header">
+                  <h3>Add More Slots</h3>
+                  <span className="price">$5 each</span>
+                </div>
+                <div className="option-features">
+                  <p>✅ 5 additional slots per purchase</p>
+                  <p>✅ Buy as many as you need</p>
+                  <p className="info-text">Available after Basic upgrade</p>
+                </div>
+                <button 
+                  className="upgrade-btn secondary"
+                  onClick={() => handleUpgrade('pro')}
+                  disabled={purchaseTier === 'free'}
+                  title={purchaseTier === 'free' ? 'Upgrade to Basic first' : ''}
+                >
+                  Add 5 Slots ($5)
+                </button>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <p className="footer-note">
+                💳 Payments are processed securely. This is a demo—no charges yet.
+              </p>
+              <button 
+                className="continue-free-btn"
+                onClick={() => setShowUpgradeModal(false)}
+              >
+                Continue with {siteLimit} sites
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="app">
+      <UpgradeModal />
+      
       <header>
         <h1>🕵️ Site Spy</h1>
         <p>Track your local competitors</p>
@@ -780,7 +909,21 @@ export default function Home() {
 
       <main>
         <section className="add-competitor">
-          <h2>Add Competitor</h2>
+          <div className="add-competitor-header">
+            <h2>Add Competitor</h2>
+            <div className="site-counter">
+              <span className="counter-number">{competitors.length}/{siteLimit}</span>
+              <div className="counter-bar">
+                <div 
+                  className={`counter-fill ${competitors.length >= siteLimit ? 'full' : ''}`}
+                  style={{ width: `${(competitors.length / siteLimit) * 100}%` }}
+                ></div>
+              </div>
+              {competitors.length >= siteLimit && (
+                <span className="counter-limit-reached">Limit reached</span>
+              )}
+            </div>
+          </div>
           <div className="input-group">
             <input
               type="text"
@@ -788,8 +931,14 @@ export default function Home() {
               value={newUrl}
               onChange={(e) => setNewUrl(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addCompetitor()}
+              disabled={competitors.length >= siteLimit}
             />
-            <button onClick={addCompetitor}>Add</button>
+            <button 
+              onClick={addCompetitor}
+              disabled={competitors.length >= siteLimit}
+            >
+              {competitors.length >= siteLimit ? 'Limit Reached' : 'Add'}
+            </button>
           </div>
           <p className="info-text">💡 Note: Content tracking works best when deployed on a backend server (CORS may block browser requests)</p>
         </section>
@@ -911,7 +1060,14 @@ export default function Home() {
         )}
 
         <section className="competitors-list">
-          <h2>Your Competitors ({competitors.length})</h2>
+          <div className="competitors-header">
+            <h2>Your Competitors ({competitors.length}/{siteLimit})</h2>
+            {purchaseTier !== 'free' && (
+              <span className="tier-badge" title="Current purchase tier">
+                ⭐ {purchaseTier === 'basic' ? 'Basic' : 'Pro'} Plan
+              </span>
+            )}
+          </div>
           {competitors.length === 0 ? (
             <p className="empty">No competitors yet. Add one above!</p>
           ) : (
@@ -1205,6 +1361,240 @@ export default function Home() {
         main { padding: 20px; max-width: 600px; margin: 0 auto; padding-bottom: 40px; }
         section { margin-bottom: 30px; }
         h2 { font-size: 18px; margin-bottom: 12px; color: #333; font-weight: 600; }
+        
+        /* Modal Styles */
+        .modal-overlay {
+          position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+          background: rgba(0, 0, 0, 0.6); display: flex; align-items: center;
+          justify-content: center; z-index: 2000; animation: fadeIn 0.3s ease;
+          backdrop-filter: blur(4px);
+        }
+        
+        .modal-content {
+          background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+          max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;
+          animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          position: relative;
+        }
+        
+        .modal-close {
+          position: absolute; top: 16px; right: 16px;
+          background: #f0f0f0; border: none; border-radius: 50%;
+          width: 32px; height: 32px; font-size: 24px; cursor: pointer;
+          display: flex; align-items: center; justify-content: center;
+          transition: background 0.2s;
+          z-index: 2001;
+        }
+        
+        .modal-close:hover { background: #e0e0e0; }
+        
+        .modal-header {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white; padding: 32px 32px 24px; text-align: center;
+          border-radius: 16px 16px 0 0;
+        }
+        
+        .modal-header h2 {
+          font-size: 24px; margin: 0 0 8px 0; font-weight: 700;
+          color: white;
+        }
+        
+        .modal-header p {
+          margin: 0; font-size: 14px; color: rgba(255, 255, 255, 0.9);
+          opacity: 0.95;
+        }
+        
+        .modal-body { padding: 32px; }
+        
+        .current-plan {
+          margin-bottom: 32px; text-align: center;
+        }
+        
+        .plan-badge {
+          display: inline-block; background: #f0f0f0;
+          padding: 6px 12px; border-radius: 20px; font-size: 11px;
+          font-weight: 600; color: #666; text-transform: uppercase;
+          letter-spacing: 0.5px; margin-bottom: 12px;
+        }
+        
+        .plan-card {
+          background: linear-gradient(135deg, #f5f7fa 0%, #e9ecf1 100%);
+          border: 2px solid #e0e6f0; border-radius: 12px; padding: 16px;
+          margin-bottom: 24px;
+        }
+        
+        .plan-card.current {
+          border: 2px solid #667eea; background: linear-gradient(135deg, #f0f4ff 0%, #e8edff 100%);
+        }
+        
+        .plan-card h3 {
+          font-size: 16px; margin: 0 0 12px 0; font-weight: 600;
+          color: #333;
+        }
+        
+        .plan-limit {
+          display: flex; align-items: baseline; justify-content: center;
+          gap: 12px; margin: 12px 0;
+        }
+        
+        .limit-number {
+          font-size: 36px; font-weight: 700; color: #667eea;
+        }
+        
+        .limit-label {
+          font-size: 14px; color: #666; font-weight: 500;
+        }
+        
+        .plan-desc {
+          font-size: 13px; color: #888; margin: 12px 0 0 0;
+        }
+        
+        .upgrade-options {
+          display: flex; flex-direction: column; gap: 16px;
+          margin-bottom: 24px;
+        }
+        
+        .upgrade-option {
+          border: 2px solid #e0e0e0; border-radius: 12px; padding: 16px;
+          transition: all 0.3s ease;
+          background: white;
+        }
+        
+        .upgrade-option:hover {
+          border-color: #667eea; background: #f8faff;
+          box-shadow: 0 8px 16px rgba(102, 126, 234, 0.1);
+        }
+        
+        .option-header {
+          display: flex; justify-content: space-between; align-items: center;
+          margin-bottom: 12px;
+        }
+        
+        .option-header h3 {
+          font-size: 16px; margin: 0; font-weight: 600; color: #333;
+        }
+        
+        .price {
+          font-size: 20px; font-weight: 700; color: #667eea;
+        }
+        
+        .option-features {
+          margin-bottom: 16px; font-size: 13px; color: #555;
+          line-height: 1.6;
+        }
+        
+        .option-features p {
+          margin: 6px 0;
+        }
+        
+        .option-features .info-text {
+          color: #999; font-size: 12px; font-style: italic;
+        }
+        
+        .upgrade-btn {
+          width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white; border: none; border-radius: 8px; padding: 12px;
+          font-weight: 600; font-size: 14px; cursor: pointer;
+          transition: all 0.3s ease;
+        }
+        
+        .upgrade-btn:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+        
+        .upgrade-btn:disabled {
+          opacity: 0.5; cursor: not-allowed; background: #ccc;
+        }
+        
+        .upgrade-btn.secondary {
+          background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        
+        .modal-footer {
+          padding: 24px 32px; background: #f9f9f9; border-top: 1px solid #e0e0e0;
+          border-radius: 0 0 16px 16px;
+        }
+        
+        .footer-note {
+          font-size: 12px; color: #999; margin-bottom: 16px;
+          text-align: center; font-style: italic;
+        }
+        
+        .continue-free-btn {
+          width: 100%; background: #f0f0f0; color: #666;
+          border: none; border-radius: 8px; padding: 12px;
+          font-weight: 600; font-size: 14px; cursor: pointer;
+          transition: all 0.2s;
+        }
+        
+        .continue-free-btn:hover {
+          background: #e0e0e0;
+        }
+        
+        /* Site Counter */
+        .add-competitor-header {
+          display: flex; justify-content: space-between; align-items: flex-start;
+          gap: 20px; margin-bottom: 12px;
+        }
+        
+        .site-counter {
+          flex: 1; min-width: 180px;
+        }
+        
+        .counter-number {
+          display: block; font-size: 12px; font-weight: 600; color: #666;
+          text-align: right; margin-bottom: 6px; font-variant-numeric: tabular-nums;
+        }
+        
+        .counter-bar {
+          height: 6px; background: #e0e0e0; border-radius: 3px;
+          overflow: hidden; margin-bottom: 6px;
+        }
+        
+        .counter-fill {
+          height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+          border-radius: 3px; transition: width 0.3s ease;
+        }
+        
+        .counter-fill.full {
+          background: linear-gradient(90deg, #ff6b6b 0%, #ee5a6f 100%);
+          animation: pulse-red 1.5s infinite;
+        }
+        
+        .counter-limit-reached {
+          display: block; font-size: 11px; color: #ff6b6b; font-weight: 600;
+          text-align: right; text-transform: uppercase; letter-spacing: 0.5px;
+          animation: pulse-text 1.5s infinite;
+        }
+        
+        @keyframes pulse-red {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
+        }
+        
+        @keyframes pulse-text {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
+        }
+        
+        .competitors-header {
+          display: flex; justify-content: space-between; align-items: center;
+          margin-bottom: 12px; gap: 12px;
+        }
+        
+        .tier-badge {
+          display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white; padding: 6px 12px; border-radius: 20px;
+          font-size: 11px; font-weight: 600; text-transform: uppercase;
+          letter-spacing: 0.5px; white-space: nowrap;
+          animation: gradientShift 3s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.8; }
+        }
         
         /* Input Group */
         .input-group { display: flex; gap: 10px; margin-bottom: 8px; }
