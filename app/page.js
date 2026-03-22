@@ -2367,6 +2367,9 @@ export default function Home() {
           border-radius: 6px;
           background: transparent;
           transition: all 0.2s ease;
+          align-self: center;
+          margin-top: 0;
+          margin-bottom: 0;
         }
         .checkbox-label input[type="checkbox"]:checked {
           background: linear-gradient(135deg, #0066cc 0%, #00d4ff 100%);
