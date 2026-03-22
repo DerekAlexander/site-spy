@@ -2453,11 +2453,29 @@ export default function Home() {
           box-shadow: 0 4px 12px rgba(0, 165, 204, 0.2);
         }
         .checkbox-label input[type="checkbox"] { 
-          width: 24px; height: 24px; accent-color: #00d4ff; 
-          cursor: pointer; flex-shrink: 0; accent-color: #00ffff;
+          width: 24px; height: 24px; 
+          cursor: pointer; flex-shrink: 0; margin: 0;
+          accent-color: #00d4ff;
+          appearance: none;
+          -webkit-appearance: none;
+          border: 2px solid #00a5cc;
+          border-radius: 6px;
+          background: transparent;
+          transition: all 0.2s ease;
         }
         .checkbox-label input[type="checkbox"]:checked {
-          accent-color: #00d4ff;
+          background: linear-gradient(135deg, #0066cc 0%, #00d4ff 100%);
+          border-color: #00d4ff;
+          box-shadow: inset 0 0 0 2px #0f1419;
+        }
+        .checkbox-label input[type="checkbox"]:checked::after {
+          content: '✓';
+          display: block;
+          color: white;
+          font-weight: bold;
+          font-size: 16px;
+          text-align: center;
+          line-height: 20px;
         }
         
         .notify-input { 
