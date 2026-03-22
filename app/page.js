@@ -333,9 +333,27 @@ function AnalyticsDashboard({ competitors }) {
       {/* Premium Feature Notice */}
       <div className="analytics-card premium-notice">
         <h4>⭐ Premium Features</h4>
-        <p className="premium-text">
-          This analytics dashboard is a <strong>premium feature</strong>. 
-          Track unlimited sites and get detailed performance insights with a Pro plan.
+        <div className="premium-features-grid">
+          <div className="premium-feature-item">
+            <div className="feature-name">📊 Analytics Dashboard</div>
+            <div className="feature-tiers">Pro</div>
+          </div>
+          <div className="premium-feature-item">
+            <div className="feature-name">📈 Performance Metrics</div>
+            <div className="feature-tiers">Pro</div>
+          </div>
+          <div className="premium-feature-item">
+            <div className="feature-name">🗓️ Change Heatmap</div>
+            <div className="feature-tiers">Pro</div>
+          </div>
+          <div className="premium-feature-item">
+            <div className="feature-name">📥 Export Reports</div>
+            <div className="feature-tiers">Pro</div>
+          </div>
+        </div>
+        <p className="premium-text" style={{marginTop: '14px'}}>
+          Track up to <strong>20 sites</strong> with Pro, or unlimited with Enterprise. 
+          Plus advanced analytics, exports, and priority support.
         </p>
         <button className="premium-upgrade-btn">🚀 Upgrade to Pro</button>
       </div>
@@ -3094,6 +3112,28 @@ export default function Home() {
           transform: translateY(-2px);
         }
         
+        .premium-features-grid {
+          display: grid; grid-template-columns: 1fr 1fr;
+          gap: 10px; margin: 12px 0;
+        }
+        
+        .premium-feature-item {
+          background: rgba(255, 0, 153, 0.1); border: 1px solid #9933ff;
+          border-radius: 8px; padding: 10px; display: flex;
+          flex-direction: column; align-items: flex-start; gap: 6px;
+        }
+        
+        .feature-name {
+          font-weight: 600; color: #e0f2ff; font-size: 13px;
+        }
+        
+        .feature-tiers {
+          background: #9933ff; color: white; padding: 3px 8px;
+          border-radius: 4px; font-size: 11px; font-weight: 600;
+          text-transform: uppercase; letter-spacing: 0.5px;
+          width: fit-content;
+        }
+        
         /* TIER COMPARISON TABLE - MOBILE FIRST */
         .tier-comparison {
           grid-column: 1 / -1; margin-top: 12px;
@@ -3410,6 +3450,10 @@ export default function Home() {
           
           .metric-value {
             font-size: 32px;
+          }
+          
+          .premium-features-grid {
+            grid-template-columns: 1fr 1fr 1fr 1fr;
           }
           
           .performance-row {
