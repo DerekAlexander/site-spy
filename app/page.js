@@ -330,33 +330,7 @@ function AnalyticsDashboard({ competitors }) {
         <p className="export-info">📌 Includes uptime %, response times, and change history</p>
       </div>
 
-      {/* Premium Feature Notice */}
-      <div className="analytics-card premium-notice">
-        <h4>⭐ Premium Features</h4>
-        <div className="premium-features-grid">
-          <div className="premium-feature-item">
-            <div className="feature-name">📊 Analytics Dashboard</div>
-            <div className="feature-tiers">Pro</div>
-          </div>
-          <div className="premium-feature-item">
-            <div className="feature-name">📈 Performance Metrics</div>
-            <div className="feature-tiers">Pro</div>
-          </div>
-          <div className="premium-feature-item">
-            <div className="feature-name">🗓️ Change Heatmap</div>
-            <div className="feature-tiers">Pro</div>
-          </div>
-          <div className="premium-feature-item">
-            <div className="feature-name">📥 Export Reports</div>
-            <div className="feature-tiers">Pro</div>
-          </div>
-        </div>
-        <p className="premium-text" style={{marginTop: '14px'}}>
-          Track up to <strong>20 sites</strong> with Pro, or unlimited with Enterprise. 
-          Plus advanced analytics, exports, and priority support.
-        </p>
-        <button className="premium-upgrade-btn">🚀 Upgrade to Pro</button>
-      </div>
+
     </div>
   );
 }
